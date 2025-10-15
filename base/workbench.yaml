@@ -11,7 +11,7 @@ spec:
       serviceAccountName: my-workbench
       containers:
       - name: my-workbench
-        image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/my-custom-notebook:1.0
+        image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/jupyter-minimal-cuda-py312-ubi9:2025.1
         imagePullPolicy: Always
         resources:
           requests:
