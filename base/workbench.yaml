@@ -1,20 +1,45 @@
-apiVersion: opf.redhat.com/v1alpha1
-kind: NotebookServer
+apiVersion: kubeflow.org/v1
+kind: Notebook
 metadata:
-  name: ml-workbench
+  name: my-workbench
+  namespace: ml
+  labels:
+    app.kubernetes.io/instance: mlops-demo
+spec:
+  template:
+    spec:
+      serviceAccountName: my-workbench
+      containers:
+      - name: my-workbench
+        image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/my-custom-notebook:1.0
+        imagePullPolicy: Always
+        resources:
+          requests:
+            cpu: "1"
+            memory: 2Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+        ports:
+        - containerPort: 8888
+          name: notebook-port
+        volumeMounts:
+        - name: workbench-pvc
+          mountPath: /opt/app-root/src
+      volumes:
+      - name: workbench-pvc
+        persistentVolumeClaim:
+          claimName: my-workbench-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-workbench-pvc
   namespace: ml
 spec:
-  # immagine del container JupyterLab (puoi personalizzare)
-  image: registry.redhat.io/openshift4/ose-ml-workbench:latest
-  cpu: "1"
-  memory: "2Gi"
-  # Storage persistente per salvare i notebook
-  volumeClaimTemplate:
-    metadata:
-      name: ml-workbench-pvc
-    spec:
-      accessModes: ["ReadWriteOnce"]
-      resources:
-        requests:
-          storage: 5Gi
-      storageClassName: lvms-vg1
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: lvms-vg1
