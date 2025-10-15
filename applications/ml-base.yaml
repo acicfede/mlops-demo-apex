@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ml-base
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/acicfede/mlops-demo.git'
+    targetRevision: main
+    path: base
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: ml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
