@@ -1,0 +1,20 @@
+apiVersion: opf.redhat.com/v1alpha1
+kind: NotebookServer
+metadata:
+  name: ml-workbench
+  namespace: ml
+spec:
+  # immagine del container JupyterLab (puoi personalizzare)
+  image: registry.redhat.io/openshift4/ose-ml-workbench:latest
+  cpu: "1"
+  memory: "2Gi"
+  # Storage persistente per salvare i notebook
+  volumeClaimTemplate:
+    metadata:
+      name: ml-workbench-pvc
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: lvms-vg1
