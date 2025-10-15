@@ -43,3 +43,18 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: lvms-vg1
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-workbench
+  namespace: ml
+spec:
+  to:
+    kind: Service
+    name: my-workbench
+  port:
+    targetPort: notebook-port
+  tls:
+    termination: edge
+
