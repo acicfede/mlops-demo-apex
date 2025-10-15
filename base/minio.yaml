@@ -10,6 +10,7 @@ spec:
     requests:
       storage: 20Gi
   volumeMode: Filesystem
+  storageClassName: lvms-vg1
 ---
 kind: Secret
 apiVersion: v1
