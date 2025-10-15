@@ -8,4 +8,4 @@ spec:
   resources:
     requests:
       storage: 5Gi
-  storageClassName: lvms-vg1
+  storageClassName: lvms-vg1   # <-- qui specifichi la tua storage class
