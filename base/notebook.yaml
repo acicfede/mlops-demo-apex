@@ -2,7 +2,7 @@ apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
   annotations:
-    notebooks.opendatahub.io/inject-oauth: 'true' # <1>
+    notebooks.opendatahub.io/inject-oauth: 'true'
     opendatahub.io/image-display-name: Minimal Python
     notebooks.opendatahub.io/oauth-logout-url: 'https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com/projects/my-data-science-project?notebookLogout=my-workbench'
     opendatahub.io/accelerator-name: ''
@@ -18,7 +18,7 @@ spec:
     spec:
       affinity: {}
       containers:
-        - resources: # <2>
+        - resources:
             limits:
               cpu: '2'
               memory: 8Gi
@@ -33,8 +33,6 @@ spec:
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           name: my-workbench
           livenessProbe:
             failureThreshold: 3
@@ -44,8 +42,6 @@ spec:
               scheme: HTTP
             initialDelaySeconds: 10
             periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           env:
             - name: NOTEBOOK_ARGS
               value: |-
@@ -81,9 +77,9 @@ spec:
               name: trusted-ca
               readOnly: true
               subPath: ca-bundle.crt
-          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:2024.1' # <3>
+          image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:2024.1'
           workingDir: /opt/app-root/src
-        - resources: # <4>
+        - resources:
             limits:
               cpu: 100m
               memory: 64Mi
@@ -98,8 +94,6 @@ spec:
               scheme: HTTPS
             initialDelaySeconds: 5
             periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           name: oauth-proxy
           livenessProbe:
             failureThreshold: 3
@@ -109,8 +103,6 @@ spec:
               scheme: HTTPS
             initialDelaySeconds: 30
             periodSeconds: 5
-            successThreshold: 1
-            timeoutSeconds: 1
           env:
             - name: NAMESPACE
               valueFrom:
@@ -166,3 +158,18 @@ spec:
           secret:
             defaultMode: 420
             secretName: my-workbench-tls
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-workbench
+  namespace: ml
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: lvms-vg1
+  volumeMode: Filesystem
+
