@@ -12,7 +12,7 @@ metadata:
     notebooks.opendatahub.io/last-size-selection: Small
     opendatahub.io/username: 'kube:admin'
   name: my-workbench
-  namespace: my-data-science-project
+  namespace: ml
 spec:
   template:
     spec:
@@ -28,7 +28,7 @@ spec:
           readinessProbe:
             failureThreshold: 3
             httpGet:
-              path: /notebook/my-data-science-project/my-workbench/api
+              path: /notebook/ml/my-workbench/api
               port: notebook-port
               scheme: HTTP
             initialDelaySeconds: 10
@@ -39,7 +39,7 @@ spec:
           livenessProbe:
             failureThreshold: 3
             httpGet:
-              path: /notebook/my-data-science-project/my-workbench/api
+              path: /notebook/ml/my-workbench/api
               port: notebook-port
               scheme: HTTP
             initialDelaySeconds: 10
@@ -52,9 +52,9 @@ spec:
                 --ServerApp.port=8888
                 --ServerApp.token=''
                 --ServerApp.password=''
-                --ServerApp.base_url=/notebook/my-data-science-project/my-workbench
+                --ServerApp.base_url=/notebook/ml/my-workbench
                 --ServerApp.quit_button=False
-                --ServerApp.tornado_settings={"user":"kube-3aadmin","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com", "hub_prefix":"/projects/my-data-science-project"}
+                --ServerApp.tornado_settings={"user":"kube-3aadmin","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com", "hub_prefix":"/projects/ml"}
             - name: JUPYTER_IMAGE
               value: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-minimal-notebook:2024.1'
             - name: PIP_CERT
@@ -141,7 +141,7 @@ spec:
             - '--email-domain=*'
             - '--skip-provider-button'
             - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"my-workbench","namespace":"$(NAMESPACE)"}'
-            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com/projects/my-data-science-project?notebookLogout=my-workbench'
+            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com/projects/ml?notebookLogout=my-workbench'
       enableServiceLinks: false
       serviceAccountName: my-workbench
       volumes:
