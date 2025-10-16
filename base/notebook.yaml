@@ -62,7 +62,6 @@ spec:
                 --ServerApp.base_url=/notebook/ml/my-workbench
                 --ServerApp.quit_button=False
                 --ServerApp.tornado_settings={"user":"kube-3aadmin","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.my-cluster.com","hub_prefix":"/projects/ml"}
-                --ServerApp.ip=0.0.0.0
                 --ServerApp.allow_origin=*
                 --ServerApp.open_browser=False
             - name: JUPYTER_IMAGE
@@ -167,6 +166,7 @@ spec:
         - name: tls-certificates
           secret:
             secretName: my-workbench-tls
+
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
