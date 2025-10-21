@@ -160,3 +160,40 @@ spec:
   tls:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-minio-bucket
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: create-bucket
+          image: quay.io/minio/mc:latest
+          env:
+            - name: MINIO_ENDPOINT
+              value: http://minio-service:9000
+            - name: MINIO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: minio_root_user
+            - name: MINIO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: minio-secret
+                  key: minio_root_password
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "⏳ Waiting for MinIO to be ready..."
+              until nc -z minio-service 9000; do sleep 2; done
+              echo "✅ MinIO is up, configuring client..."
+              mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+              mc mb myminio/ml-workbench || echo "Bucket already exists"
+              mc ls myminio
