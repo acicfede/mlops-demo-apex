@@ -1,32 +1,36 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
 metadata:
-  name: ml-model-service
+  annotations:
+    openshift.io/display-name: llama3.2-1b
+    serving.knative.openshift.io/enablePassthrough: 'true'
+    sidecar.istio.io/inject: 'true'
+    sidecar.istio.io/rewriteAppHTTPProbers: 'true'
+  name: llama32-1b
+  finalizers:
+    - inferenceservice.finalizers
+  labels:
+    opendatahub.io/dashboard: 'true'
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ml-model
-  template:
-    metadata:
-      labels:
-        app: ml-model
-    spec:
-      containers:
-      - name: model-container
-        image: quay.io/your-org/mlops-pipeline:latest
-        ports:
-        - containerPort: 8080
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ml-model-service
-spec:
-  selector:
-    app: ml-model
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8080
-  type: LoadBalancer
+  predictor:
+    maxReplicas: 1
+    minReplicas: 1
+    model:
+      modelFormat:
+        name: vLLM
+      name: ''
+      resources:
+        limits:
+          cpu: '6'
+          memory: 16Gi
+          nvidia.com/gpu: '1'
+        requests:
+          cpu: '4'
+          memory: 8Gi
+          nvidia.com/gpu: '1'
+      runtime: llama32-1b
+      storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct'
+    tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        value: NVIDIA-A10G-SHARED
