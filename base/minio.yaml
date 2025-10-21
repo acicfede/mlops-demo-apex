@@ -191,9 +191,12 @@ spec:
             - /bin/sh
             - -c
             - |
-              echo "⏳ Waiting for MinIO to be ready..."
-              until nc -z minio-service 9000; do sleep 2; done
-              echo "✅ MinIO is up, configuring client..."
-              mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD
+              echo "⏳ Waiting for MinIO..."
+              # loop fino a quando mc non riesce a fare l'alias
+              until mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; do
+                sleep 2
+              done
+              echo "✅ MinIO is ready, creating bucket..."
               mc mb myminio/ml-workbench || echo "Bucket already exists"
               mc ls myminio
+
