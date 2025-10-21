@@ -19,7 +19,7 @@ spec:
     maxReplicas: 1
     model:
       name: llama32-1b
-      runtime: llama32-1b
+      runtime: llama32-1b   # <-- il runtime custom che hai definito
       modelFormat:
         name: vLLM
       storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct'
