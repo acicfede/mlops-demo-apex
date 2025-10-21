@@ -10,7 +10,7 @@ spec:
     requests:
       storage: 20Gi
   volumeMode: Filesystem
-  storageClassName: lvms-vg1
+  storageClassName: nfs-csi
 ---
 kind: Secret
 apiVersion: v1
