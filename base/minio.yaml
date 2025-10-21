@@ -165,6 +165,7 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: create-minio-bucket
+  namespace: ml
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
@@ -172,7 +173,7 @@ spec:
     spec:
       restartPolicy: OnFailure
       containers:
-        - name: create-bucket
+        - name: create-bucket-test
           image: quay.io/minio/mc:latest
           env:
             - name: MINIO_ENDPOINT
@@ -187,16 +188,19 @@ spec:
                 secretKeyRef:
                   name: minio-secret
                   key: minio_root_password
+            - name: MC_CONFIG_DIR
+              value: /tmp/.mc
           command:
             - /bin/sh
             - -c
             - |
-              echo "⏳ Waiting for MinIO..."
-              # loop fino a quando mc non riesce a fare l'alias
+              echo "⏳ Waiting for MinIO to be ready..."
               until mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; do
+                echo "Waiting..."
                 sleep 2
               done
               echo "✅ MinIO is ready, creating bucket..."
               mc mb myminio/ml-workbench || echo "Bucket already exists"
               mc ls myminio
+
 
