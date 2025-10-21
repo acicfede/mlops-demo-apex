@@ -1,41 +1,38 @@
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: llama32-1b
-  namespace: ml
   annotations:
     openshift.io/display-name: llama3.2-1b
     serving.knative.openshift.io/enablePassthrough: 'true'
     sidecar.istio.io/inject: 'true'
     sidecar.istio.io/rewriteAppHTTPProbers: 'true'
-    opendatahub.io/enable-ui: 'true'
+  name: llama32-1b
   finalizers:
     - inferenceservice.finalizers
   labels:
     opendatahub.io/dashboard: 'true'
 spec:
   predictor:
-    minReplicas: 1
     maxReplicas: 1
+    minReplicas: 1
     model:
-      name: llama32-1b
-      runtime: llama32-1b   # <-- il runtime custom che hai definito
       modelFormat:
         name: vLLM
-      storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct'
+      name: ''
       resources:
-        requests:
-          cpu: '4'
-          memory: 8Gi
-          nvidia.com/gpu: '1'
         limits:
           cpu: '6'
           memory: 16Gi
           nvidia.com/gpu: '1'
+        requests:
+          cpu: '4'
+          memory: 8Gi
+          nvidia.com/gpu: '1'
+      runtime: llama32-1b
+      storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct'
     tolerations:
-      - key: nvidia.com/gpu
-        operator: Exists
-        effect: NoSchedule
+      - effect: NoSchedule
+        key: nvidia.com/gpu
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
