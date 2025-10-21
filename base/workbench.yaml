@@ -154,3 +154,22 @@ spec:
           secret:
             secretName: ml-workbench-tls
             defaultMode: 420
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ml-workbench-data-connection
+  namespace: ml
+  labels:
+    opendatahub.io/dashboard: 'true'
+    opendatahub.io/managed: 'true'
+  annotations:
+    opendatahub.io/connection-type: s3
+    openshift.io/display-name: ml-workbench-data-connection
+stringData:
+  AWS_ACCESS_KEY_ID: minio
+  AWS_SECRET_ACCESS_KEY: minio123
+  AWS_DEFAULT_REGION: us-east-1
+  AWS_S3_BUCKET: workbench
+  AWS_S3_ENDPOINT: https://minio-api-ml.apps.{{metadata.labels.cluster-domain}}
+type: Opaque
