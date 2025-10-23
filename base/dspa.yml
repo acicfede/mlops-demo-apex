@@ -28,13 +28,13 @@ spec:
   objectStorage:
     disableHealthCheck: false
     externalStorage:
-      bucket: <CHANGE_ME>
-      host: <CHANGE_ME>
+      bucket: mlpipeline-artifacts
+      host: minio-service.ml.svc
       port: ""
       s3CredentialsSecret:
+        secretName: minio-secret
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
-        secretName: <CHANGE_ME>
       scheme: http
   persistenceAgent:
     deploy: true
