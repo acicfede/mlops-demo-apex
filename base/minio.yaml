@@ -1,8 +1,27 @@
 ---
-kind: PersistentVolumeClaim
+# 1️⃣ Secret MinIO
 apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+type: Opaque
+stringData:
+  minio_root_user: minio
+  minio_root_password: minio123
+  AWS_ACCESS_KEY_ID: minio
+  AWS_SECRET_ACCESS_KEY: minio123
+---
+# 1️⃣ PVC MinIO
+apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
   name: minio-pvc
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -12,20 +31,14 @@ spec:
   volumeMode: Filesystem
   storageClassName: nfs-csi
 ---
-kind: Secret
-apiVersion: v1
-metadata:
-  name: minio-secret
-stringData:
-  # change the username and password to your own values.
-  # ensure that the user is at least 3 characters long and the password at least 8
-  minio_root_user: minio
-  minio_root_password: minio123
----
-kind: Deployment
+# 2️⃣ Deployment MinIO
 apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: minio
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   selector:
@@ -33,7 +46,6 @@ spec:
       app: minio
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: minio
     spec:
@@ -42,31 +54,17 @@ spec:
           persistentVolumeClaim:
             claimName: minio-pvc
       containers:
-        - resources:
-            limits:
-              cpu: 250m
-              memory: 1Gi
-            requests:
-              cpu: 20m
-              memory: 100Mi
-          readinessProbe:
-            tcpSocket:
-              port: 9000
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
-            periodSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
-          terminationMessagePath: /dev/termination-log
-          name: minio
-          livenessProbe:
-            tcpSocket:
-              port: 9000
-            initialDelaySeconds: 30
-            timeoutSeconds: 1
-            periodSeconds: 5
-            successThreshold: 1
-            failureThreshold: 3
+        - name: minio
+          image: quay.io/minio/minio:latest
+          imagePullPolicy: IfNotPresent
+          args:
+            - server
+            - /data
+            - --console-address
+            - :9090
+          ports:
+            - containerPort: 9000
+            - containerPort: 9090
           env:
             - name: MINIO_ROOT_USER
               valueFrom:
@@ -78,41 +76,31 @@ spec:
                 secretKeyRef:
                   name: minio-secret
                   key: minio_root_password
-          ports:
-            - containerPort: 9000
-              protocol: TCP
-            - containerPort: 9090
-              protocol: TCP
-          imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: data
               mountPath: /data
-              subPath: minio
-          terminationMessagePolicy: File
-          image: >-
-            quay.io/minio/minio:latest
-          args:
-            - server
-            - /data
-            - --console-address
-            - :9090
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
-      dnsPolicy: ClusterFirst
-      securityContext: {}
-      schedulerName: default-scheduler
-  strategy:
-    type: Recreate
-  revisionHistoryLimit: 10
-  progressDeadlineSeconds: 600
+          readinessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket:
+              port: 9000
+            initialDelaySeconds: 30
+            periodSeconds: 5
 ---
-kind: Service
+# 2️⃣ Service MinIO
 apiVersion: v1
+kind: Service
 metadata:
   name: minio-service
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
-  ipFamilies:
-    - IPv4
+  selector:
+    app: minio
   ports:
     - name: api
       protocol: TCP
@@ -122,17 +110,16 @@ spec:
       protocol: TCP
       port: 9090
       targetPort: 9090
-  internalTrafficPolicy: Cluster
   type: ClusterIP
-  ipFamilyPolicy: SingleStack
-  sessionAffinity: None
-  selector:
-    app: minio
 ---
-kind: Route
+# 2️⃣ Route API
 apiVersion: route.openshift.io/v1
+kind: Route
 metadata:
   name: minio-api
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   to:
     kind: Service
@@ -145,10 +132,14 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 ---
-kind: Route
+# 2️⃣ Route UI
 apiVersion: route.openshift.io/v1
+kind: Route
 metadata:
   name: minio-ui
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   to:
     kind: Service
@@ -161,19 +152,21 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 ---
+# 3️⃣ Job per creare bucket
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: create-minio-bucket
   namespace: ml
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "3"
 spec:
+  backoffLimit: 3
   template:
     spec:
       restartPolicy: OnFailure
       containers:
-        - name: create-bucket-test
+        - name: create-bucket
           image: quay.io/minio/mc:latest
           env:
             - name: MINIO_ENDPOINT
@@ -197,11 +190,42 @@ spec:
               echo "⏳ Waiting for MinIO to be ready..."
               until mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; do
                 echo "Waiting..."
-                sleep 2
+                sleep 3
               done
-              echo "✅ MinIO is ready, creating bucket..."
+              echo "✅ Creating buckets..."
               mc mb myminio/ml-workbench || echo "Bucket already exists"
               mc mb myminio/mlpipeline-artifacts || echo "Bucket already exists"
               mc ls myminio
-
-
+---
+# 4️⃣ DataSciencePipeline v2
+apiVersion: datasciencepipelines.opendatahub.io/v1
+kind: DataSciencePipeline
+metadata:
+  name: pipelines-definition
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  apiServer:
+    deploy: true
+    enableOauth: true
+    stripEOF: true
+    autoUpdatePipelineDefaultVersion: true
+    collectMetrics: true
+    trackArtifacts: true
+    archiveLogs: false
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
+  objectStorage:
+    externalStorage:
+      bucket: mlpipeline-artifacts
+      host: minio-service.ml.svc
+      scheme: http
+      s3CredentialsSecret:
+        secretName: minio-secret
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
+  scheduledWorkflow:
+    deploy: true
+    cronScheduleTimezone: UTC
