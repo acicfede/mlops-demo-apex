@@ -1,21 +1,16 @@
 apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
 kind: DataSciencePipelinesApplication
 metadata:
+  labels:
+    app.kubernetes.io/instance: mlops
   name: pipelines-definition
+  namespace: ml
 spec:
   apiServer:
-    applyTektonCustomResource: true
-    archiveLogs: false
-    autoUpdatePipelineDefaultVersion: true
-    collectMetrics: true
-    dbConfigConMaxLifetimeSec: 120
+    artifactSignedURLExpirySeconds: 60
     deploy: true
     enableOauth: true
     enableSamplePipeline: false
-    injectDefaultScript: true
-    stripEOF: true
-    terminateStatus: Cancelled
-    trackArtifacts: true
   database:
     disableHealthCheck: false
     mariaDB:
@@ -23,22 +18,25 @@ spec:
       pipelineDBName: mlpipeline
       pvcSize: 10Gi
       username: mlpipeline
+  dspVersion: v2   # ✅ versione corretta
   mlmd:
     deploy: false
   objectStorage:
     disableHealthCheck: false
+    enableExternalRoute: false
     externalStorage:
       bucket: mlpipeline-artifacts
       host: minio-service.ml.svc
       port: ""
       s3CredentialsSecret:
-        secretName: minio-secret
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
+        secretName: minio-secret
       scheme: http
   persistenceAgent:
     deploy: true
     numWorkers: 2
+  podToPodTLS: true
   scheduledWorkflow:
     cronScheduleTimezone: UTC
     deploy: true
