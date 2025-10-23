@@ -189,35 +189,4 @@ spec:
               mc mb myminio/ml-workbench || echo "Bucket already exists"
               mc mb myminio/mlpipeline-artifacts || echo "Bucket already exists"
               mc ls myminio
----
-apiVersion: datasciencepipelines.opendatahub.io/v1
-kind: DataSciencePipeline
-metadata:
-  name: pipelines-definition
-  namespace: ml
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
-spec:
-  apiServer:
-    deploy: true
-    enableOauth: true
-    stripEOF: true
-    autoUpdatePipelineDefaultVersion: true
-    collectMetrics: true
-    trackArtifacts: true
-    archiveLogs: false
-  persistenceAgent:
-    deploy: true
-    numWorkers: 2
-  objectStorage:
-    externalStorage:
-      bucket: mlpipeline-artifacts
-      host: minio-service.ml.svc
-      scheme: http
-      s3CredentialsSecret:
-        secretName: minio-secret
-        accessKey: AWS_ACCESS_KEY_ID
-        secretKey: AWS_SECRET_ACCESS_KEY
-  scheduledWorkflow:
-    deploy: true
-    cronScheduleTimezone: UTC
+
