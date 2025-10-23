@@ -201,6 +201,7 @@ spec:
               done
               echo "✅ MinIO is ready, creating bucket..."
               mc mb myminio/ml-workbench || echo "Bucket already exists"
+              mc mb myminio/mlpipeline-artifacts || echo "Bucket already exists"
               mc ls myminio
 
 
