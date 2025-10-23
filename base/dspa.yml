@@ -21,7 +21,7 @@ spec:
     mariaDB:
       deploy: true
       pipelineDBName: mlpipeline
-      pvcSize: <CHANGE_ME>
+      pvcSize: 10Gi
       username: mlpipeline
   mlmd:
     deploy: false
