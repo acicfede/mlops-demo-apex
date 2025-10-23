@@ -1,22 +1,20 @@
-apiVersion: datasciencepipelines.opendatahub.io/v1
-kind: DataSciencePipeline
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
+kind: DataSciencePipelinesApplication
 metadata:
   name: pipelines-definition
   namespace: ml
-  annotations:
-    argocd.argoproj.io/sync-wave: "4"
 spec:
+  dspVersion: v2
   apiServer:
     deploy: true
     enableOauth: true
-    stripEOF: true
-    autoUpdatePipelineDefaultVersion: true
-    collectMetrics: true
-    trackArtifacts: true
-    archiveLogs: false
-  persistenceAgent:
-    deploy: true
-    numWorkers: 2
+    enableSamplePipeline: false
+  database:
+    mariaDB:
+      deploy: true
+      pipelineDBName: mlpipeline
+      pvcSize: 10Gi
+      username: mlpipeline
   objectStorage:
     externalStorage:
       bucket: mlpipeline-artifacts
@@ -26,6 +24,9 @@ spec:
         secretName: minio-secret
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
+  persistenceAgent:
+    deploy: true
+    numWorkers: 2
   scheduledWorkflow:
     deploy: true
     cronScheduleTimezone: UTC
