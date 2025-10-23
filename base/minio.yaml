@@ -1,5 +1,4 @@
 ---
-# 1️⃣ Secret MinIO
 apiVersion: v1
 kind: Secret
 metadata:
@@ -14,7 +13,6 @@ stringData:
   AWS_ACCESS_KEY_ID: minio
   AWS_SECRET_ACCESS_KEY: minio123
 ---
-# 1️⃣ PVC MinIO
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -31,7 +29,6 @@ spec:
   volumeMode: Filesystem
   storageClassName: nfs-csi
 ---
-# 2️⃣ Deployment MinIO
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -90,7 +87,6 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 5
 ---
-# 2️⃣ Service MinIO
 apiVersion: v1
 kind: Service
 metadata:
@@ -112,7 +108,6 @@ spec:
       targetPort: 9090
   type: ClusterIP
 ---
-# 2️⃣ Route API
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -132,7 +127,6 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 ---
-# 2️⃣ Route UI
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -152,7 +146,6 @@ spec:
     termination: edge
     insecureEdgeTerminationPolicy: Redirect
 ---
-# 3️⃣ Job per creare bucket
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -197,7 +190,6 @@ spec:
               mc mb myminio/mlpipeline-artifacts || echo "Bucket already exists"
               mc ls myminio
 ---
-# 4️⃣ DataSciencePipeline v2
 apiVersion: datasciencepipelines.opendatahub.io/v1
 kind: DataSciencePipeline
 metadata:
