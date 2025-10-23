@@ -1,45 +1,32 @@
-apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
-kind: DataSciencePipelinesApplication
+apiVersion: datasciencepipelines.opendatahub.io/v1
+kind: DataSciencePipeline
 metadata:
   name: pipelines-definition
   namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   apiServer:
-    applyTektonCustomResource: true
-    archiveLogs: false
-    autoUpdatePipelineDefaultVersion: true
-    collectMetrics: true
-    dbConfigConMaxLifetimeSec: 120
     deploy: true
     enableOauth: true
-    enableSamplePipeline: false
-    injectDefaultScript: true
     stripEOF: true
-    terminateStatus: Cancelled
+    autoUpdatePipelineDefaultVersion: true
+    collectMetrics: true
     trackArtifacts: true
-  database:
-    disableHealthCheck: false
-    mariaDB:
-      deploy: true
-      pipelineDBName: mlpipeline
-      pvcSize: 10Gi
-      username: mlpipeline
-  mlmd:
-    deploy: false
-  objectStorage:
-    disableHealthCheck: false
-    externalStorage:
-      bucket: mlpipeline-artifacts
-      host: minio.ml.svc
-      port: ""
-      s3CredentialsSecret:
-        accessKey: AWS_ACCESS_KEY_ID
-        secretKey: AWS_SECRET_ACCESS_KEY
-        secretName: minio-secret     # 👈 aggiornato
-      scheme: http
+    archiveLogs: false
   persistenceAgent:
     deploy: true
     numWorkers: 2
+  objectStorage:
+    externalStorage:
+      bucket: mlpipeline-artifacts
+      host: minio.ml.svc
+      scheme: http
+      s3CredentialsSecret:
+        secretName: minio-secret
+        accessKey: AWS_ACCESS_KEY_ID
+        secretKey: AWS_SECRET_ACCESS_KEY
   scheduledWorkflow:
-    cronScheduleTimezone: UTC
     deploy: true
+    cronScheduleTimezone: UTC
+
