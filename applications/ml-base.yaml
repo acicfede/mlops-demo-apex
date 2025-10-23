@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: mlops
+  name: mlops-demo
   namespace: openshift-gitops
 spec:
   project: ml-project
