@@ -1,9 +1,7 @@
-apiVersion: datasciencepipelinesapplications.opendatahub.io/v1alpha1
+apiVersion: datasciencepipelinesapplications.opendatahub.io/v1
 kind: DataSciencePipelinesApplication
 metadata:
-  labels:
-    app.kubernetes.io/instance: mlops
-  name: pipelines-definition
+  name: dspa
   namespace: ml
 spec:
   apiServer:
@@ -11,6 +9,9 @@ spec:
     deploy: true
     enableOauth: true
     enableSamplePipeline: false
+    managedPipelines:
+      instructLab:
+        state: Removed
   database:
     disableHealthCheck: false
     mariaDB:
@@ -18,21 +19,20 @@ spec:
       pipelineDBName: mlpipeline
       pvcSize: 10Gi
       username: mlpipeline
-  dspVersion: v2   # ✅ versione corretta
-  mlmd:
-    deploy: false
+      storageClassName: nfs-csi   # StorageClass aggiunto
+  dspVersion: v2
   objectStorage:
     disableHealthCheck: false
     enableExternalRoute: false
     externalStorage:
       bucket: mlpipeline-artifacts
-      host: minio-service.ml.svc
-      port: ""
+      host: minio-api-ml.apps.privateailab.acic.accenture
+      region: us-east-1
       s3CredentialsSecret:
         accessKey: AWS_ACCESS_KEY_ID
         secretKey: AWS_SECRET_ACCESS_KEY
-        secretName: minio-secret
-      scheme: http
+        secretName: minio-secret   # <-- aggiornato qui
+      scheme: https
   persistenceAgent:
     deploy: true
     numWorkers: 2
@@ -40,3 +40,4 @@ spec:
   scheduledWorkflow:
     cronScheduleTimezone: UTC
     deploy: true
+
