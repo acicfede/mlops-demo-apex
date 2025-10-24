@@ -1,0 +1,14 @@
+apiVersion: kubeflow.org/v1beta1
+kind: PipelineRun
+metadata:
+  name: untitled1-run
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  serviceAccountName: default-editor
+  pipelineRef:
+    name: untitled1
+  podMetadata:
+    labels:
+      run-by: argocd
