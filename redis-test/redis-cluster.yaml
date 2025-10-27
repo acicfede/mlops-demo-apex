@@ -2,7 +2,7 @@ apiVersion: app.redislabs.com/v1
 kind: RedisEnterpriseCluster
 metadata:
   name: rec
-  namespace: redisdb
+  namespace: ml
 spec:
   serviceAccountName: rec
   redisEnterpriseNodeResources:
