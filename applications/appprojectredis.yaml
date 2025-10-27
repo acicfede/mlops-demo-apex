@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ml-redis
+  namespace: openshift-gitops
+spec:
+  description: "ML redis"
+  destinations:
+    - namespace: ml
+      server: https://kubernetes.default.svc
+  sourceRepos:
+    - 'https://github.com/acicfede/mlops-demo-apex.git'
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
