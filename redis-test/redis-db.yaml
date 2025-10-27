@@ -2,7 +2,7 @@ apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: my-doc
-  namespace: redisdb
+  namespace: ml
 spec:
   databaseSecretName: redb-my-doc
   memorySize: 4GB
