@@ -1,0 +1,15 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: ui
+  namespace: redisdb
+spec:
+  host: ui-redis.apps.acp1.ailab.dur.eapps.delllabs.net
+  port:
+    targetPort: ui
+  tls:
+    termination: passthrough
+  to:
+    kind: Service
+    name: rec-ui
+    weight: 100
