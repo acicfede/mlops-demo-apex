@@ -1,16 +1,14 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: redis-lb
-  namespace: ml
+  name: redis-lb2
 spec:
   selector:
-    app: redis-enterprise
-    redis.io/cluster: rec
+    #redis.io/bdb-1: '1'
+    statefulset.kubernetes.io/pod-name: "rec-2"
   ports:
     - name: redis
       protocol: TCP
       port: 16271
       targetPort: 16271
   type: LoadBalancer
-
