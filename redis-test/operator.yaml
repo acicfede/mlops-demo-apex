@@ -1,14 +1,19 @@
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
+apiVersion: v1
+kind: Namespace
 metadata:
-  name: redis-enterprise-operator-cert
+  name: redisns
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app.kubernetes.io/instance: redis-db
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: redisns-operator-group
   namespace: redisns
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
-  channel: 7.8.6
-  installPlanApproval: Automatic
-  name: redis-enterprise-operator-cert
-  source: certified-operators
-  sourceNamespace: openshift-marketplace
-  startingCSV: redis-enterprise-operator.v7.8.6-8.1
+  targetNamespaces:
+    - redisns
