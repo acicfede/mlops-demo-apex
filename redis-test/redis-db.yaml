@@ -4,7 +4,7 @@ metadata:
   name: my-doc
   namespace: ml
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   databaseSecretName: redb-my-doc
   memorySize: 4GB
