@@ -10,7 +10,7 @@ spec:
   memorySize: 1GB
   modulesList:
     - name: search
-      version: 2.8.27
+      version: 2.10.18
   persistence: snapshotEvery12Hour
   replication: true
   tlsMode: disabled
