@@ -2,7 +2,7 @@ apiVersion: app.redislabs.com/v1alpha1
 kind: RedisEnterpriseDatabase
 metadata:
   name: my-doc
-  namespace: ml
+  namespace: redisns
   annotations:
     argocd.argoproj.io/sync-wave: "1"
 spec:
