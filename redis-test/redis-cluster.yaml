@@ -3,6 +3,8 @@ kind: RedisEnterpriseCluster
 metadata:
   name: rec
   namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   serviceAccountName: rec
   redisEnterpriseNodeResources:
