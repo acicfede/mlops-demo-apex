@@ -2,6 +2,8 @@ kind: Service
 apiVersion: v1
 metadata:
   name: redis-lb2
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   selector:
     #redis.io/bdb-1: '1'
