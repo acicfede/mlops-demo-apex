@@ -1,11 +1,12 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: redis-lb2
+  name: redis-lb
+  namespace: ml
 spec:
   selector:
-    #redis.io/bdb-1: '1'
-    statefulset.kubernetes.io/pod-name: "rec-2"
+    app: redis-enterprise
+    redis.io/cluster: rec
   ports:
     - name: redis
       protocol: TCP
