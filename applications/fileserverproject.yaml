@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: ml-fileserver
+  namespace: openshift-gitops
+spec:
+  description: "ML redis"
+  sourceRepos:
+    - 'https://github.com/acicfede/mlops-demo-apex.git'
+  destinations:
+    - namespace: redisns
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
