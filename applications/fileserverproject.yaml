@@ -4,7 +4,7 @@ metadata:
   name: ml-fileserver
   namespace: openshift-gitops
 spec:
-  description: "ML redis"
+  description: "ML file-server"
   sourceRepos:
     - 'https://github.com/acicfede/mlops-demo-apex.git'
   destinations:
