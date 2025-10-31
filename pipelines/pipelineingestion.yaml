@@ -5,7 +5,7 @@ metadata:
   namespace: ml
 spec:
   description: >
-    Pipeline that clones a repository, builds a Python image, and executes
+    Pipeline that clones a repository, builds a Python S2I image, and executes
     a Jupyter notebook to launch a Kubeflow pipeline for website ingestion.
   params:
     - name: GIT_URL
@@ -33,8 +33,8 @@ spec:
       default: "main"
     - name: PYTHON_IMAGE
       type: string
-      default: "python:3.11-slim"
-      description: Base Python image for S2I
+      default: "3.11-ubi9"
+      description: Base Python S2I image (must exist in OpenShift registry)
     - name: TARGET_IMAGE
       type: string
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
