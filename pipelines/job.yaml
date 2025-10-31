@@ -4,7 +4,6 @@ metadata:
   name: untitled1-pipeline-job
   namespace: ml
 spec:
-  backoffLimit: 1
   template:
     spec:
       serviceAccountName: pipeline-runner
@@ -20,7 +19,7 @@ spec:
           image: quay.io/quay/busybox:latest
           command: ["sh", "-c"]
           args:
-            - mkdir -p /workspace/jupyter-work-dir && chmod -R 777 /workspace/jupyter-work-dir
+            - mkdir -p /workspace/jupyter-work-dir
           volumeMounts:
             - mountPath: /workspace/jupyter-work-dir
               name: workspace
@@ -31,12 +30,10 @@ spec:
           args:
             - |
               cd /workspace/jupyter-work-dir
-              # Scarica bootstrapper e requirements solo se non presenti
-              [[ -f /workspace/pipelines/bootstrapper.py ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o /workspace/pipelines/bootstrapper.py
-              [[ -f /workspace/pipelines/requirements-elyra.txt ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o /workspace/pipelines/requirements-elyra.txt
+              [[ -f bootstrapper.py ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o bootstrapper.py
+              [[ -f requirements-elyra.txt ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
               python3 -m pip install --upgrade pip packaging
-              # Esegui il bootstrapper
-              python3 /workspace/pipelines/bootstrapper.py --pipeline-name "untitled1" \
+              python3 bootstrapper.py --pipeline-name "untitled1" \
                 --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
                 --cos-bucket "mlpipeline-artifacts" \
                 --cos-directory "untitled1-$(date +%s)" \
@@ -59,5 +56,5 @@ spec:
                   name: minio-secret
                   key: AWS_SECRET_ACCESS_KEY
             - name: S3_VERIFY_SSL
-              value: "false"
-
+              value: "false"  # Skippa il controllo SSL
+  backoffLimit: 1
