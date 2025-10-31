@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: execute-notebook-kubeflow
-  namespace: composer-ai-apps
+  namespace: ml
 spec:
   description: Execute a Jupyter notebook triggering a Kubeflow pipeline
   params:
