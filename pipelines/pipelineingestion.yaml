@@ -7,7 +7,7 @@ metadata:
     argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
   description: >
-    Pipeline that clones a repository, builds a Python image with Buildah,
+    Pipeline that clones a repository, builds a Python image using Kaniko,
     and executes a Jupyter notebook to launch a Kubeflow pipeline.
   params:
     - name: GIT_URL
@@ -73,17 +73,16 @@ spec:
           - name: source
         steps:
           - name: build
-            image: quay.io/buildah/stable:latest
+            image: gcr.io/kaniko-project/executor:latest
             workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
             command:
-              - buildah
+              - /kaniko/executor
             args:
-              - bud
-              - -t
-              - $(params.TARGET_IMAGE)
+              - --dockerfile=Dockerfile
+              - --context=.
+              - --destination=$(params.TARGET_IMAGE)
               - --build-arg
               - BASE_IMAGE=$(params.BASE_IMAGE)
-              - .
       params:
         - name: BASE_IMAGE
           value: $(params.BASE_IMAGE)
@@ -114,4 +113,3 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
-
