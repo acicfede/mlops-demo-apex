@@ -3,62 +3,41 @@ kind: Pipeline
 metadata:
   name: website-ingestion-pipeline
   namespace: ml
-  annotations:
-    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
-  description: >
-    Pipeline that clones a repository, builds a Python image, and executes
-    a Jupyter notebook to launch a Kubeflow pipeline for website ingestion.
   params:
     - name: GIT_URL
       type: string
       default: "https://github.com/acicfede/mlops-demo-apex.git"
-      description: Repository URL
     - name: GIT_REVISION
       type: string
       default: "main"
-      description: Git branch or commit
     - name: WEBSITE_URL
       type: string
       default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-      description: Website to ingest
     - name: VECTORDB_INDEX
       type: string
       default: "WebScrapedData"
-      description: Target vector DB index
     - name: NOTEBOOK_PATH
       type: string
       default: "Check_for_new_docs.ipynb"
-      description: Path of the notebook to execute
     - name: PATH_CONTEXT
       type: string
       default: "pipelines"
-      description: Directory of the notebook
-    - name: PYTHON_IMAGE
+    - name: BASE_IMAGE
       type: string
       default: "quay.io/openshift/python-311-rhel8:latest"
-      description: Python base image for S2I
     - name: TARGET_IMAGE
       type: string
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
-      description: Target image to build
     - name: KUBEFLOW_ENDPOINT
       type: string
       default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
-      description: Kubeflow endpoint
   workspaces:
     - name: source
   tasks:
-    - name: git-clone
+    - name: clone
       taskRef:
-        resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: git-clone
-          - name: namespace
-            value: openshift-pipelines
+        name: git-clone-task
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -68,39 +47,30 @@ spec:
         - name: output
           workspace: source
 
-    - name: s2i-python
+    - name: build-image
       runAfter:
-        - git-clone
+        - clone
       taskRef:
-        resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: s2i-python
-          - name: namespace
-            value: openshift-pipelines
+        name: build-python-image
       params:
-        - name: VERSION
-          value: $(params.PYTHON_IMAGE)
+        - name: BASE_IMAGE
+          value: $(params.BASE_IMAGE)
+        - name: TARGET_IMAGE
+          value: $(params.TARGET_IMAGE)
         - name: CONTEXT
           value: $(params.PATH_CONTEXT)
-        - name: IMAGE
-          value: $(params.TARGET_IMAGE)
       workspaces:
         - name: source
           workspace: source
 
-    - name: execute-kubeflow-pipeline
+    - name: execute-notebook
       runAfter:
-        - s2i-python
+        - build-image
       taskRef:
-        name: execute-kubeflow-pipeline
+        name: execute-notebook
       params:
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
-        - name: TAG
-          value: latest
         - name: NOTEBOOK_PATH
           value: $(params.NOTEBOOK_PATH)
         - name: PATH_CONTEXT
@@ -111,3 +81,6 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
+      workspaces:
+        - name: source
+          workspace: source
