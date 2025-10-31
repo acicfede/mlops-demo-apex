@@ -3,8 +3,6 @@ kind: Pipeline
 metadata:
   name: website-ingestion-pipeline
   namespace: ml
-  annotations:
-    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
   description: >
     Pipeline that clones a repository and executes
@@ -13,33 +11,29 @@ spec:
     - name: GIT_URL
       type: string
       default: "https://github.com/acicfede/mlops-demo-apex.git"
-      description: Repository URL
     - name: GIT_REVISION
       type: string
       default: "main"
     - name: WEBSITE_URL
       type: string
       default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-      description: Website to ingest
     - name: VECTORDB_INDEX
       type: string
       default: "WebScrapedData"
-      description: Target vector DB index
     - name: NOTEBOOK_PATH
       type: string
       default: "Check_for_new_docs.ipynb"
-      description: Path of the notebook to execute
     - name: PATH_CONTEXT
       type: string
       default: "pipelines"
-      description: Directory of the notebook
     - name: PYTHON_IMAGE
       type: string
       default: "quay.io/openshift/python-311-rhel8:latest"
-
+    - name: KUBEFLOW_ENDPOINT
+      type: string
+      default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
   workspaces:
     - name: source
-
   tasks:
     - name: git-clone
       taskRef:
@@ -79,3 +73,6 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
+      workspaces:
+        - name: source
+          workspace: source
