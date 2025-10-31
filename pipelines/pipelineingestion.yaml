@@ -24,11 +24,11 @@ spec:
       description: Target vector DB index
     - name: NOTEBOOK_PATH
       type: string
-      default: "website-ingestion-pipeline.ipynb"
+      default: "Check_for_new_docs.ipynb"
       description: Path of the notebook to execute
     - name: PATH_CONTEXT
       type: string
-      default: "kfp/website-ingestor"
+      default: "pipelines"
       description: Directory of the notebook
     - name: GIT_REVISION
       type: string
