@@ -27,6 +27,18 @@ spec:
               --cos-directory "untitled1-$(date +%s)" \
               --cos-dependencies-archive "Part1-Data-Cleaning.tar.gz" \
               --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb"
+            python3 bootstrapper.py --pipeline-name "untitled1" \
+              --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
+              --cos-bucket "mlpipeline-artifacts" \
+              --cos-directory "untitled1-$(date +%s)" \
+              --cos-dependencies-archive "Part2-Data-Analysis.tar.gz" \
+              --file "/workspace/pipelines/Part2-Data-Analysis.ipynb"
+            python3 bootstrapper.py --pipeline-name "untitled1" \
+              --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
+              --cos-bucket "mlpipeline-artifacts" \
+              --cos-directory "untitled1-$(date +%s)" \
+              --cos-dependencies-archive "Part3-Time-Series-Forecasting.tar.gz" \
+              --file "/workspace/pipelines/Part3-Time-Series-Forecasting.ipynb"
         volumeMounts:
           - name: pipeline-files
             mountPath: /workspace/pipelines
@@ -41,11 +53,8 @@ spec:
               secretKeyRef:
                 name: minio-secret
                 key: AWS_SECRET_ACCESS_KEY
-          # Variabili per ignorare SSL
-          - name: PYTHONWARNINGS
-            value: "ignore:Unverified HTTPS request"
-          - name: CURL_CA_BUNDLE
-            value: ""
+          - name: SSL_CERT_FILE
+            value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
       volumes:
         - name: pipeline-files
           configMap:
