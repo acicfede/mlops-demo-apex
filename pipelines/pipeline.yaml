@@ -5,7 +5,7 @@ metadata:
   namespace: ml
 spec:
   description: |
-    Tekton pipeline che:
+    Pipeline Tekton che:
     1. Clona il repository MLOps demo
     2. Costruisce un'immagine Python con S2I
     3. Esegue il notebook che avvia una pipeline Kubeflow
@@ -34,7 +34,7 @@ spec:
     - name: PYTHON_IMAGE
       type: string
       description: Versione base dell’immagine Python
-      default: "3.11-ubi9"
+      default: "default-route-openshift-image-registry.apps.privateailab.acic.accenture/openshift/python:3.9-ubi9"
 
     - name: TARGET_IMAGE
       type: string
@@ -62,14 +62,9 @@ spec:
   tasks:
     - name: git-clone
       taskRef:
+        kind: Task
+        name: git-clone
         resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: git-clone
-          - name: namespace
-            value: openshift-pipelines
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -83,26 +78,21 @@ spec:
       runAfter:
         - git-clone
       taskRef:
+        kind: Task
+        name: s2i-python
         resolver: cluster
-        params:
-          - name: kind
-            value: task
-          - name: name
-            value: s2i-python
-          - name: namespace
-            value: openshift-pipelines
       params:
         - name: VERSION
           value: $(params.PYTHON_IMAGE)
         - name: CONTEXT
-          value: "."
+          value: $(params.PATH_CONTEXT)
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
       workspaces:
         - name: source
           workspace: source
 
-    - name: execute-website-ingestion-kubeflow-pipeline
+    - name: execute-notebook
       runAfter:
         - s2i-python
       taskRef:
@@ -121,4 +111,5 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
+
 
