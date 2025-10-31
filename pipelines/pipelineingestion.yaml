@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: website-ingestion-notebook-pipeline
-  namespace: composer-ai-apps
+  namespace: ml
   annotations:
     argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:composer-ai-apps/website-ingestion-notebook-pipeline'
 spec:
