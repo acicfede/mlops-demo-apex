@@ -3,6 +3,8 @@ kind: Task
 metadata:
   name: execute-kubeflow-pipeline
   namespace: ml
+  labels:
+    app.kubernetes.io/instance: elyra-pipeline
 spec:
   description: Execute a Jupyter notebook to launch a Kubeflow pipeline
   params:
@@ -25,10 +27,21 @@ spec:
     - name: source
   steps:
     - name: run-notebook
-      image: "$(params.IMAGE):$(params.TAG)"
-      workingDir: "$(workspaces.source.path)/$(params.PATH_CONTEXT)"
+      image: "$(inputs.params.IMAGE):$(inputs.params.TAG)"
       script: |
         #!/bin/sh
         set -e
+
+        echo "Using Kubeflow endpoint: $(inputs.params.KUBEFLOW_ENDPOINT)"
+        echo "Vector DB Index: $(inputs.params.VECTORDB_INDEX)"
+        echo "Website URL: $(inputs.params.WEBSITE_URL)"
+
+        # spostarsi nella directory corretta
+        cd $(workspaces.source.path)/$(inputs.params.PATH_CONTEXT)
+
+        # installare dipendenze se servono
         pip install --no-cache-dir jupyter pandas numpy
-        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
+
+        # eseguire il notebook
+        jupyter nbconvert --to notebook --execute $(inputs.params.NOTEBOOK_PATH)
+
