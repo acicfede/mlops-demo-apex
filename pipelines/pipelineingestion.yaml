@@ -42,9 +42,8 @@ spec:
   tasks:
     - name: git-clone
       taskRef:
-        kind: Task
+        kind: ClusterTask
         name: git-clone
-        namespace: openshift-pipelines
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -58,9 +57,8 @@ spec:
       runAfter:
         - git-clone
       taskRef:
-        kind: Task
+        kind: ClusterTask
         name: s2i-python
-        namespace: openshift-pipelines
       params:
         - name: VERSION
           value: $(params.PYTHON_IMAGE)
@@ -91,5 +89,4 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
-
 
