@@ -3,46 +3,54 @@ kind: Task
 metadata:
   name: execute-notebook
   namespace: ml
+  labels:
+    app.kubernetes.io/instance: elyra-pipeline
 spec:
-  description: Execute a Python notebook to trigger a Kubeflow pipeline
+  description: "Esegue un notebook Python per lanciare la pipeline Kubeflow"
   params:
     - name: IMAGE
       type: string
-      description: The Python image to use
+      default: "python"
+      description: "Immagine di base per eseguire il notebook"
     - name: TAG
       type: string
-      default: "latest"
-      description: Tag of the Python image
+      default: "3.11-slim"
+      description: "Tag dell'immagine"
     - name: NOTEBOOK_PATH
       type: string
-      description: Path to the notebook to execute
+      default: "Check_for_new_docs.ipynb"
+      description: "Percorso del notebook da eseguire"
     - name: PATH_CONTEXT
       type: string
-      description: Directory containing the notebook
+      default: "."
+      description: "Cartella di lavoro dove si trova il notebook"
     - name: KUBEFLOW_ENDPOINT
       type: string
-      description: Kubeflow endpoint
+      default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+      description: "Endpoint della pipeline Kubeflow"
     - name: WEBSITE_URL
       type: string
-      description: Website to ingest
+      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+      description: "Sito web da ingerire"
     - name: VECTORDB_INDEX
       type: string
-      description: Target vector DB index
+      default: "WebScrapedData"
+      description: "Indice del database vettoriale di destinazione"
   workspaces:
     - name: source
   steps:
-    - name: execute-notebook
+    - name: execute-python
       image: "$(params.IMAGE):$(params.TAG)"
       workingDir: "$(workspaces.source.path)/$(params.PATH_CONTEXT)"
       script: |
-        #!/bin/sh
+        #!/usr/bin/env sh
         set -e
-        echo "Running notebook $(params.NOTEBOOK_PATH)..."
-        pip install --quiet jupyter nbconvert
-        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH) --allow-errors --output executed.ipynb
-        echo "Notebook executed successfully"
-        echo "Website: $(params.WEBSITE_URL)"
-        echo "VectorDB Index: $(params.VECTORDB_INDEX)"
+        echo "Eseguendo notebook: $(params.NOTEBOOK_PATH)"
+        echo "Kubeflow endpoint: $(params.KUBEFLOW_ENDPOINT)"
+        echo "Sito web: $(params.WEBSITE_URL)"
+        echo "Indice DB: $(params.VECTORDB_INDEX)"
+        pip install --upgrade pip jupyter nbconvert ipykernel
+        jupyter nbconvert --execute $(params.NOTEBOOK_PATH) --to notebook --inplace
 
 
 
