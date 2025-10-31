@@ -23,7 +23,6 @@ spec:
     - name: git-clone
       taskRef:
         name: git-clone
-        kind: Task
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -37,14 +36,14 @@ spec:
       runAfter:
         - git-clone
       taskRef:
-        name: execute-kubeflow-pipeline
-        kind: Task
+        name: execute-notebook
       params:
-        - name: NOTEBOOK_PATH
-          value: $(params.NOTEBOOK_PATH)
         - name: PATH_CONTEXT
           value: $(params.PATH_CONTEXT)
+        - name: NOTEBOOK_PATH
+          value: $(params.NOTEBOOK_PATH)
       workspaces:
         - name: source
           workspace: source
+
 
