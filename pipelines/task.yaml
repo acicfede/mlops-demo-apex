@@ -1,7 +1,7 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: git-clone-task
+  name: git-clone
   namespace: ml
 spec:
   params:
@@ -16,9 +16,5 @@ spec:
       image: alpine/git
       script: |
         #!/bin/sh
-        set -e
-        echo "Cloning repo..."
         git clone --branch $(params.REVISION) $(params.URL) $(workspaces.output.path)
-        ls -l $(workspaces.output.path)
-
 
