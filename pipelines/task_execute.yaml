@@ -2,54 +2,32 @@ apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: execute-notebook
-  namespace: ml
-  labels:
-    app.kubernetes.io/instance: elyra-pipeline
 spec:
-  description: "Esegue un notebook Python per lanciare la pipeline Kubeflow"
   params:
     - name: IMAGE
-      type: string
-      default: "python"
-      description: "Immagine di base per eseguire il notebook"
+      description: Container image with Python + Jupyter installed
     - name: TAG
-      type: string
-      default: "3.11-slim"
-      description: "Tag dell'immagine"
+      description: Image tag
+      default: "latest"
     - name: NOTEBOOK_PATH
-      type: string
-      default: "Check_for_new_docs.ipynb"
-      description: "Percorso del notebook da eseguire"
-    - name: PATH_CONTEXT
-      type: string
-      default: "."
-      description: "Cartella di lavoro dove si trova il notebook"
-    - name: KUBEFLOW_ENDPOINT
-      type: string
-      default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
-      description: "Endpoint della pipeline Kubeflow"
-    - name: WEBSITE_URL
-      type: string
-      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-      description: "Sito web da ingerire"
-    - name: VECTORDB_INDEX
-      type: string
-      default: "WebScrapedData"
-      description: "Indice del database vettoriale di destinazione"
+      description: Path to the notebook to execute, relative to workspace
+      default: "Untitled-Copy2.ipynb"   # Aggiorna con un notebook esistente nella repo
   workspaces:
     - name: source
+      description: Workspace containing the repo
   steps:
-    - name: execute-python
+    - name: execute-notebook
       image: "$(params.IMAGE):$(params.TAG)"
-      workingDir: "$(workspaces.source.path)/$(params.PATH_CONTEXT)"
+      workingDir: "$(workspaces.source.path)"
       script: |
         #!/usr/bin/env sh
         set -e
+
         echo "Eseguendo notebook: $(params.NOTEBOOK_PATH)"
-        echo "Kubeflow endpoint: $(params.KUBEFLOW_ENDPOINT)"
-        echo "Sito web: $(params.WEBSITE_URL)"
-        echo "Indice DB: $(params.VECTORDB_INDEX)"
+        # Aggiorna pip e installa i pacchetti necessari
         pip install --upgrade pip jupyter nbconvert ipykernel
+
+        # Esegui il notebook in-place
         jupyter nbconvert --execute $(params.NOTEBOOK_PATH) --to notebook --inplace
 
 
