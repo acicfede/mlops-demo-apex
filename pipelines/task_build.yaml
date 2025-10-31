@@ -19,5 +19,8 @@ spec:
       script: |
         #!/bin/sh
         set -e
+        echo "Building Python image..."
         cd $(workspaces.source.path)/$(params.CONTEXT)
+        ls -l
         buildah bud -t $(params.TARGET_IMAGE) --build-arg BASE_IMAGE=$(params.BASE_IMAGE) .
+
