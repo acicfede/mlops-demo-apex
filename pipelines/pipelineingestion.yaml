@@ -1,10 +1,14 @@
-
 apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
   name: website-ingestion-pipeline
   namespace: ml
+  annotations:
+    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
+  description: >
+    Clones the repo, builds a Python image and executes a Jupyter notebook
+    to launch a Kubeflow pipeline for website ingestion.
   params:
     - name: GIT_URL
       type: string
@@ -12,33 +16,37 @@ spec:
     - name: GIT_REVISION
       type: string
       default: "main"
-    - name: WEBSITE_URL
+    - name: PYTHON_IMAGE
       type: string
-      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-    - name: VECTORDB_INDEX
+      default: "quay.io/openshift-python/python-311-rhel8:latest"
+    - name: TARGET_IMAGE
       type: string
-      default: "WebScrapedData"
+      default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
     - name: NOTEBOOK_PATH
       type: string
       default: "Check_for_new_docs.ipynb"
     - name: PATH_CONTEXT
       type: string
       default: "pipelines"
-    - name: BASE_IMAGE
+    - name: WEBSITE_URL
       type: string
-      default: "quay.io/openshift/python-311-rhel8:latest"
-    - name: TARGET_IMAGE
+      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+    - name: VECTORDB_INDEX
       type: string
-      default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
+      default: "WebScrapedData"
     - name: KUBEFLOW_ENDPOINT
       type: string
       default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+
   workspaces:
     - name: source
+
   tasks:
-    - name: clone
+    - name: git-clone
       taskRef:
-        name: git-clone-task
+        kind: Task
+        name: git-clone
+        resolver: cluster
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -48,34 +56,37 @@ spec:
         - name: output
           workspace: source
 
-    - name: build-image
+    - name: s2i-python
       runAfter:
-        - clone
+        - git-clone
       taskRef:
-        name: build-python-image
+        kind: Task
+        name: s2i-python
+        resolver: cluster
       params:
-        - name: BASE_IMAGE
-          value: $(params.BASE_IMAGE)
-        - name: TARGET_IMAGE
-          value: $(params.TARGET_IMAGE)
+        - name: VERSION
+          value: $(params.PYTHON_IMAGE)
         - name: CONTEXT
-          value: $(params.PATH_CONTEXT)
+          value: $(params.PATH_CONTEXT)  # inside the workspace
+        - name: IMAGE
+          value: $(params.TARGET_IMAGE)
       workspaces:
         - name: source
           workspace: source
 
     - name: execute-notebook
       runAfter:
-        - build-image
+        - s2i-python
       taskRef:
-        name: execute-notebook
+        kind: Task
+        name: execute-kubeflow-pipeline
       params:
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
+        - name: TAG
+          value: latest
         - name: NOTEBOOK_PATH
-          value: $(params.NOTEBOOK_PATH)
-        - name: PATH_CONTEXT
-          value: $(params.PATH_CONTEXT)
+          value: $(params.PATH_CONTEXT)/$(params.NOTEBOOK_PATH)
         - name: KUBEFLOW_ENDPOINT
           value: $(params.KUBEFLOW_ENDPOINT)
         - name: WEBSITE_URL
@@ -85,3 +96,4 @@ spec:
       workspaces:
         - name: source
           workspace: source
+
