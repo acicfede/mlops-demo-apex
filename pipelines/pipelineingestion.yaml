@@ -12,7 +12,7 @@ spec:
   params:
     - name: GIT_URL
       type: string
-      default: "https://github.com/acicfede/mlops-demo-apex/pipelines"
+      default: "https://github.com/acicfede/mlops-demo-apex.git"
       description: Repository URL
     - name: WEBSITE_URL
       type: string
