@@ -33,7 +33,8 @@ spec:
       default: "main"
     - name: PYTHON_IMAGE
       type: string
-      default: "3.11-ubi9"
+      default: "python:3.11-slim"
+      description: Base Python image for S2I
     - name: TARGET_IMAGE
       type: string
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
@@ -104,3 +105,4 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
+
