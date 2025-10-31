@@ -5,44 +5,40 @@ metadata:
   namespace: ml
 spec:
   description: >
-    Pipeline that clones a repository, builds a Python S2I image, and executes
-    a Jupyter notebook to launch a Kubeflow pipeline for website ingestion.
+    Pipeline that clones a repository, builds a Python image with Buildah, 
+    and executes a Jupyter notebook to launch a Kubeflow pipeline.
   params:
     - name: GIT_URL
       type: string
       default: "https://github.com/acicfede/mlops-demo-apex.git"
-      description: Repository URL
-    - name: WEBSITE_URL
-      type: string
-      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-      description: Website to ingest
-    - name: VECTORDB_INDEX
-      type: string
-      default: "WebScrapedData"
-      description: Target vector DB index
-    - name: NOTEBOOK_PATH
-      type: string
-      default: "pipelines/Check_for_new_docs.ipynb"
-      description: Path of the notebook to execute
-    - name: PATH_CONTEXT
-      type: string
-      default: "."
-      description: Directory for S2I build
     - name: GIT_REVISION
       type: string
       default: "main"
-    - name: PYTHON_IMAGE
+    - name: WEBSITE_URL
+      type: string
+      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+    - name: VECTORDB_INDEX
+      type: string
+      default: "WebScrapedData"
+    - name: NOTEBOOK_PATH
+      type: string
+      default: "pipelines/Check_for_new_docs.ipynb"
+    - name: PATH_CONTEXT
+      type: string
+      default: "."
+    - name: BASE_IMAGE
       type: string
       default: "quay.io/openshift/python-311-rhel8:latest"
-      description: Base Python S2I image from Quay.io
     - name: TARGET_IMAGE
       type: string
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
     - name: KUBEFLOW_ENDPOINT
       type: string
       default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+
   workspaces:
     - name: source
+
   tasks:
     - name: git-clone
       taskRef:
@@ -63,32 +59,27 @@ spec:
         - name: output
           workspace: source
 
-    - name: s2i-python
+    - name: build-python-image
       runAfter:
         - git-clone
-      taskRef:
-        resolver: cluster
+      taskSpec:
         params:
-          - name: kind
-            value: task
-          - name: name
-            value: s2i-python
-          - name: namespace
-            value: openshift-pipelines
-      params:
-        - name: VERSION
-          value: $(params.PYTHON_IMAGE)
-        - name: CONTEXT
-          value: $(params.PATH_CONTEXT)
-        - name: IMAGE
-          value: $(params.TARGET_IMAGE)
-      workspaces:
-        - name: source
-          workspace: source
+          - name: BASE_IMAGE
+          - name: TARGET_IMAGE
+        workspaces:
+          - name: source
+        steps:
+          - name: build
+            image: quay.io/buildah/stable:latest
+            script: |
+              #!/bin/sh
+              set -e
+              cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
+              buildah bud -t $(params.TARGET_IMAGE) --build-arg BASE_IMAGE=$(params.BASE_IMAGE) .
 
     - name: execute-kubeflow-pipeline
       runAfter:
-        - s2i-python
+        - build-python-image
       taskRef:
         kind: Task
         name: execute-kubeflow-pipeline
@@ -105,4 +96,5 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
+
 
