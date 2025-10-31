@@ -7,36 +7,45 @@ metadata:
     argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
   description: >
-    Clones the repo, builds a Python image and executes a Jupyter notebook
-    to launch a Kubeflow pipeline for website ingestion.
+    Pipeline that clones a repository, builds a Python image, and executes
+    a Jupyter notebook to launch a Kubeflow pipeline for website ingestion.
   params:
     - name: GIT_URL
       type: string
       default: "https://github.com/acicfede/mlops-demo-apex.git"
+      description: Repository URL
     - name: GIT_REVISION
       type: string
       default: "main"
-    - name: PYTHON_IMAGE
-      type: string
-      default: "quay.io/openshift-python/python-311-rhel8:latest"
-    - name: TARGET_IMAGE
-      type: string
-      default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
-    - name: NOTEBOOK_PATH
-      type: string
-      default: "Check_for_new_docs.ipynb"
-    - name: PATH_CONTEXT
-      type: string
-      default: "pipelines"
+      description: Branch or commit to checkout
     - name: WEBSITE_URL
       type: string
       default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+      description: Website to ingest
     - name: VECTORDB_INDEX
       type: string
       default: "WebScrapedData"
+      description: Target vector DB index
+    - name: PATH_CONTEXT
+      type: string
+      default: "pipelines"
+      description: Directory where the notebook is located
+    - name: NOTEBOOK_PATH
+      type: string
+      default: "Check_for_new_docs.ipynb"
+      description: Notebook filename
+    - name: PYTHON_IMAGE
+      type: string
+      default: "3.11-ubi9"
+      description: Python S2I image to use
+    - name: TARGET_IMAGE
+      type: string
+      default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
+      description: Target image for S2I build
     - name: KUBEFLOW_ENDPOINT
       type: string
       default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+      description: Kubeflow endpoint URL
 
   workspaces:
     - name: source
@@ -44,9 +53,7 @@ spec:
   tasks:
     - name: git-clone
       taskRef:
-        kind: Task
         name: git-clone
-        resolver: cluster
       params:
         - name: URL
           value: $(params.GIT_URL)
@@ -60,14 +67,12 @@ spec:
       runAfter:
         - git-clone
       taskRef:
-        kind: Task
         name: s2i-python
-        resolver: cluster
       params:
         - name: VERSION
           value: $(params.PYTHON_IMAGE)
         - name: CONTEXT
-          value: $(params.PATH_CONTEXT)  # inside the workspace
+          value: $(params.PATH_CONTEXT)
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
       workspaces:
@@ -78,7 +83,6 @@ spec:
       runAfter:
         - s2i-python
       taskRef:
-        kind: Task
         name: execute-kubeflow-pipeline
       params:
         - name: IMAGE
@@ -96,4 +100,5 @@ spec:
       workspaces:
         - name: source
           workspace: source
+
 
