@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: execute-notebook
+  namespace: ml
+spec:
+  params:
+    - name: IMAGE
+      type: string
+    - name: NOTEBOOK_PATH
+      type: string
+    - name: PATH_CONTEXT
+      type: string
+    - name: KUBEFLOW_ENDPOINT
+      type: string
+    - name: WEBSITE_URL
+      type: string
+    - name: VECTORDB_INDEX
+      type: string
+  workspaces:
+    - name: source
+  steps:
+    - name: run-notebook
+      image: $(params.IMAGE)
+      script: |
+        #!/bin/sh
+        set -e
+        cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
+        python $(params.NOTEBOOK_PATH) \
+          --kubeflow-endpoint $(params.KUBEFLOW_ENDPOINT) \
+          --website-url $(params.WEBSITE_URL) \
+          --vectordb-index $(params.VECTORDB_INDEX)
