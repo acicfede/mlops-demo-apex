@@ -26,7 +26,10 @@ spec:
         #!/bin/sh
         set -e
         cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
+        echo "Executing notebook..."
+        ls -l
         python $(params.NOTEBOOK_PATH) \
           --kubeflow-endpoint $(params.KUBEFLOW_ENDPOINT) \
           --website-url $(params.WEBSITE_URL) \
           --vectordb-index $(params.VECTORDB_INDEX)
+
