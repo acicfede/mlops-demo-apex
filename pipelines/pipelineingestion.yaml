@@ -87,12 +87,12 @@ spec:
         - name: source
           workspace: source
 
-    - name: execute-notebook-kubeflow-pipeline
+    - name: execute-kubeflow-pipeline
       runAfter:
         - s2i-python
       taskRef:
         kind: Task
-        name: execute-notebook-kubeflow-pipeline
+        name: execute-kubeflow-pipeline
       params:
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
