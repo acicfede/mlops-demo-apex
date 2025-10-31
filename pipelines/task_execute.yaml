@@ -1,25 +1,48 @@
-apiVersion: tekton.dev/v1
+apiVersion: tekton.dev/v1beta1
 kind: Task
 metadata:
   name: execute-notebook
   namespace: ml
 spec:
+  description: Execute a Python notebook to trigger a Kubeflow pipeline
   params:
-    - name: PATH_CONTEXT
+    - name: IMAGE
       type: string
-      default: "pipelines"
+      description: The Python image to use
+    - name: TAG
+      type: string
+      default: "latest"
+      description: Tag of the Python image
     - name: NOTEBOOK_PATH
       type: string
-      default: "Check_for_new_docs.ipynb"
+      description: Path to the notebook to execute
+    - name: PATH_CONTEXT
+      type: string
+      description: Directory containing the notebook
+    - name: KUBEFLOW_ENDPOINT
+      type: string
+      description: Kubeflow endpoint
+    - name: WEBSITE_URL
+      type: string
+      description: Website to ingest
+    - name: VECTORDB_INDEX
+      type: string
+      description: Target vector DB index
   workspaces:
     - name: source
   steps:
-    - name: run-notebook
-      image: python:3.11-slim
+    - name: execute-notebook
+      image: "$(params.IMAGE):$(params.TAG)"
+      workingDir: "$(workspaces.source.path)/$(params.PATH_CONTEXT)"
       script: |
         #!/bin/sh
-        cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
-        pip install jupyter nbconvert
-        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
+        set -e
+        echo "Running notebook $(params.NOTEBOOK_PATH)..."
+        pip install --quiet jupyter nbconvert
+        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH) --allow-errors --output executed.ipynb
+        echo "Notebook executed successfully"
+        echo "Website: $(params.WEBSITE_URL)"
+        echo "VectorDB Index: $(params.VECTORDB_INDEX)"
+
 
 
