@@ -14,15 +14,6 @@ spec:
             name: pipeline-files-configmap
         - name: workspace
           emptyDir: {}
-      initContainers:
-        - name: prepare-workspace
-          image: quay.io/quay/busybox:latest
-          command: ["sh", "-c"]
-          args:
-            - mkdir -p /workspace/jupyter-work-dir
-          volumeMounts:
-            - mountPath: /workspace/jupyter-work-dir
-              name: workspace
       containers:
         - name: elyra-runner
           image: quay.io/modh/runtime-images@sha256:2932e07edbcbc54e68959cc6bc5c16c6b07766453a3ac655bdc33b844108c541
@@ -32,13 +23,15 @@ spec:
               cd /workspace/jupyter-work-dir
               [[ -f bootstrapper.py ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o bootstrapper.py
               [[ -f requirements-elyra.txt ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
+              touch requirements-current.txt
               python3 -m pip install --upgrade pip packaging
               python3 bootstrapper.py --pipeline-name "untitled1" \
                 --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
                 --cos-bucket "mlpipeline-artifacts" \
                 --cos-directory "untitled1-$(date +%s)" \
                 --cos-dependencies-archive "Part1-Data-Cleaning.tar.gz" \
-                --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb"
+                --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb" \
+                --requirements "requirements-elyra.txt"
           volumeMounts:
             - mountPath: /workspace/pipelines
               name: pipeline-files
@@ -56,5 +49,5 @@ spec:
                   name: minio-secret
                   key: AWS_SECRET_ACCESS_KEY
             - name: S3_VERIFY_SSL
-              value: "false"  # Skippa il controllo SSL
+              value: "false"  # skippa il controllo SSL
   backoffLimit: 1
