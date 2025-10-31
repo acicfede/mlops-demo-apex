@@ -1,22 +1,23 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: execute-kubeflow-pipeline
+  name: git-clone
   namespace: ml
 spec:
   params:
-    - name: NOTEBOOK_PATH
+    - name: URL
       type: string
-    - name: PATH_CONTEXT
+    - name: REVISION
       type: string
+      default: main
   workspaces:
-    - name: source
+    - name: output
   steps:
-    - name: run-notebook
-      image: python:3.11-slim
+    - name: clone
+      image: alpine/git
       script: |
         #!/bin/sh
-        cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
-        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
+        git clone -b $(params.REVISION) $(params.URL) $(workspaces.output.path)
+
 
 
