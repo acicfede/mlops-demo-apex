@@ -1,42 +1,90 @@
 apiVersion: tekton.dev/v1beta1
-kind: Task
+kind: Pipeline
 metadata:
-  name: execute-website-ingestion-kubeflow-pipeline
+  name: ingestion-pipeline
 spec:
-  description: >-
-    This task will execute a python script, triggering a kubeflow pipeline
+  workspaces:
+    - name: source
   params:
-    - name: IMAGE
-      description: The image used to execute the script
+    - default: '{{ .Values.defaults.git.url }}'
+      description: Repo URL
+      name: GIT_URL
       type: string
-    - name: TAG
-      description: The tag for the image
+    - default: '{{ .Values.defaults.git.script }}'
+      description: The location of the python script containing the kfp pipeline
+      name: KFP_SCRIPT
       type: string
-      default: "latest"
-    - name: SCRIPT
-      description: The location of the script to be executed
-    - name: KUBEFLOW_ENDPOINT
-      description: The endpoint URL for Kubeflow
-      default: "https://ds-pipeline-dspa:8443"
-    - name: WEBSITE_URL
-      description: The website url to be ingested
-      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"      
-    - name: VECTORDB_INDEX
-      description: The vector db index where the website scrape to be ingested
-      default: "WebScrapedData"
-  steps:
-    - name: execute-python
-      image: $(inputs.params.IMAGE):$(inputs.params.TAG)
-      env:
-        - name: WEBSITE_URL
-          value: $(inputs.params.WEBSITE_URL)
-        - name: VECTORDB_INDEX
-          value: $(inputs.params.VECTORDB_INDEX)          
+    - default: '{{ .Values.defaults.git.path }}'
+      description: The direcotry of the KFP_SCRIPT
+      name: PATH_CONTEXT
+      type: string
+    - default: '{{ .Values.defaults.git.revision }}'
+      name: GIT_REVISION
+      type: string
+    - default: {{ .Values.defaults.python_image | default "3.11-ubi9" }}
+      name: PYTHON_IMAGE
+      type: string
+    - default: 'image-registry.openshift-image-registry.svc:5000/{{ .Release.Namespace }}/dspa'
+      name: TARGET_IMAGE
+      type: string
+    - default: 'https://ds-pipeline-dspa-{{ .Release.Namespace }}.{{ $.Values.clusterDomain }}'
+      name: KUBEFLOW_ENDPOINT
+      type: string
+  tasks:
+    - name: git-clone
+      params:
+        - name: URL
+          value: $(params.GIT_URL)
+        - name: REVISION
+          value: $(params.GIT_REVISION)
+        # - name: gitInitImage
+        #   value: 'registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:868966ef9d4b54952d8a74eb83bba40eb1f52c0148994fa704efd0e3797c61c5'
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
+      workspaces:
+        - name: output
+          workspace: source
+    - name: s2i-python
+      params:
+        - name: VERSION
+          value: $(params.PYTHON_IMAGE)
+        - name: CONTEXT
+          value: $(params.PATH_CONTEXT)
+        - name: IMAGE
+          value: $(params.TARGET_IMAGE)
+      runAfter:
+        - git-clone
+      taskRef:
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: s2i-python
+          - name: namespace
+            value: openshift-pipelines
+        resolver: cluster
+      workspaces:
+        - name: source
+          workspace: source
+    - name: execute-kubeflow-pipeline
+      params:
+        - name: IMAGE
+          value: $(params.TARGET_IMAGE)
+        - name: TAG
+          value: latest
+        - name: SCRIPT
+          value: $(params.KFP_SCRIPT)
         - name: KUBEFLOW_ENDPOINT
-          value: $(inputs.params.KUBEFLOW_ENDPOINT)
-        - name: BASE_IMAGE
-          value: $(inputs.params.IMAGE):$(inputs.params.TAG)
-        - name: CLUSTER_DOMAIN
-          value: '{{ $.Values.clusterDomain }}'
-      script: |
-        python $(inputs.params.SCRIPT)
+          value: $(params.KUBEFLOW_ENDPOINT)
+      runAfter:
+        - s2i-python
+      taskRef:
+        kind: Task
+        name: execute-kubeflow-pipeline
