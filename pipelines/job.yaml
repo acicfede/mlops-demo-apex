@@ -19,7 +19,7 @@ spec:
           image: quay.io/quay/busybox:latest
           command: ["sh", "-c"]
           args:
-            - mkdir -p /workspace/jupyter-work-dir || true
+            - mkdir -p /workspace/jupyter-work-dir
           volumeMounts:
             - mountPath: /workspace/jupyter-work-dir
               name: workspace
@@ -36,9 +36,7 @@ spec:
                 --cos-bucket "mlpipeline-artifacts" \
                 --cos-directory "untitled1-$(date +%s)" \
                 --cos-dependencies-archive "Part1-Data-Cleaning.tar.gz" \
-                --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb" \
-                --no-package-install \
-                --s3-verify-ssl "false"
+                --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb"
           volumeMounts:
             - mountPath: /workspace/pipelines
               name: pipeline-files
