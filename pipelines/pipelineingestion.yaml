@@ -41,7 +41,7 @@ spec:
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
     - name: KUBEFLOW_ENDPOINT
       type: string
-      default: "https://ds-pipeline-dspa-ml.apps.cluster-84nkq.84nkq.sandbox118.opentlc.com"
+      default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
   workspaces:
     - name: source
   tasks:
