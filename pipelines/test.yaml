@@ -3,30 +3,24 @@ kind: Task
 metadata:
   name: execute-kubeflow-pipeline
   namespace: ml
-  labels:
-    app.kubernetes.io/instance: elyra-pipeline
 spec:
   description: Execute a Jupyter notebook to launch a Kubeflow pipeline
   params:
     - name: IMAGE
       type: string
-      description: The container image to use
     - name: TAG
       type: string
-      description: The tag for the image
       default: latest
     - name: NOTEBOOK_PATH
       type: string
-      description: Path to the notebook to execute
     - name: KUBEFLOW_ENDPOINT
       type: string
-      description: Kubeflow endpoint URL
     - name: WEBSITE_URL
       type: string
-      description: Website to ingest
     - name: VECTORDB_INDEX
       type: string
-      description: Vector DB index name
+    - name: PATH_CONTEXT
+      type: string
   workspaces:
     - name: source
   steps:
@@ -38,4 +32,3 @@ spec:
         set -e
         pip install --no-cache-dir jupyter pandas numpy
         jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
-
