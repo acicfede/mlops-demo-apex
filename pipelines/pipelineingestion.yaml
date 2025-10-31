@@ -3,9 +3,11 @@ kind: Pipeline
 metadata:
   name: website-ingestion-pipeline
   namespace: ml
+  annotations:
+    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:ml/website-ingestion-pipeline'
 spec:
   description: >
-    Pipeline that clones a repository, builds a Python image with Buildah, 
+    Pipeline that clones a repository, builds a Python image with Buildah,
     and executes a Jupyter notebook to launch a Kubeflow pipeline.
   params:
     - name: GIT_URL
@@ -22,10 +24,10 @@ spec:
       default: "WebScrapedData"
     - name: NOTEBOOK_PATH
       type: string
-      default: "pipelines/Check_for_new_docs.ipynb"
+      default: "Check_for_new_docs.ipynb"
     - name: PATH_CONTEXT
       type: string
-      default: "."
+      default: "pipelines"
     - name: BASE_IMAGE
       type: string
       default: "quay.io/openshift/python-311-rhel8:latest"
@@ -66,16 +68,22 @@ spec:
         params:
           - name: BASE_IMAGE
           - name: TARGET_IMAGE
+          - name: PATH_CONTEXT
         workspaces:
           - name: source
         steps:
           - name: build
             image: quay.io/buildah/stable:latest
-            script: |
-              #!/bin/sh
-              set -e
-              cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
-              buildah bud -t $(params.TARGET_IMAGE) --build-arg BASE_IMAGE=$(params.BASE_IMAGE) .
+            workingDir: $(workspaces.source.path)/$(params.PATH_CONTEXT)
+            command:
+              - buildah
+            args:
+              - bud
+              - -t
+              - $(params.TARGET_IMAGE)
+              - --build-arg
+              - BASE_IMAGE=$(params.BASE_IMAGE)
+              - .
 
     - name: execute-kubeflow-pipeline
       runAfter:
