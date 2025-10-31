@@ -17,5 +17,8 @@ spec:
       script: |
         #!/bin/sh
         set -e
+        echo "Cloning repo..."
         git clone --branch $(params.REVISION) $(params.URL) $(workspaces.output.path)
+        ls -l $(workspaces.output.path)
+
 
