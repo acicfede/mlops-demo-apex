@@ -21,19 +21,12 @@ spec:
             [[ -f requirements-elyra.txt ]] || curl -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
             python3 -m pip install packaging
             python3 -m pip freeze > requirements-current.txt
-            # Set environment variable to skip SSL verification
-            export PYTHONWARNINGS="ignore:Unverified HTTPS request"
-            export CURL_CA_BUNDLE=""
-            # Run bootstrapper with SSL verification disabled
-            python3 - <<'EOF'
-import ssl
-import os
-from bootstrapper import main as bootstrapper_main
-
-# Disabilita verifica SSL per urllib3 e MinIO
-ssl._create_default_https_context = ssl._create_unverified_context
-bootstrapper_main()
-EOF
+            python3 bootstrapper.py --pipeline-name "untitled1" \
+              --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
+              --cos-bucket "mlpipeline-artifacts" \
+              --cos-directory "untitled1-$(date +%s)" \
+              --cos-dependencies-archive "Part1-Data-Cleaning.tar.gz" \
+              --file "/workspace/pipelines/Part1-Data-Cleaning.ipynb"
         volumeMounts:
           - name: pipeline-files
             mountPath: /workspace/pipelines
@@ -48,6 +41,11 @@ EOF
               secretKeyRef:
                 name: minio-secret
                 key: AWS_SECRET_ACCESS_KEY
+          # Variabili per ignorare SSL
+          - name: PYTHONWARNINGS
+            value: "ignore:Unverified HTTPS request"
+          - name: CURL_CA_BUNDLE
+            value: ""
       volumes:
         - name: pipeline-files
           configMap:
