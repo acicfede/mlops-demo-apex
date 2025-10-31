@@ -1,41 +1,65 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Pipeline
 metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:composer-ai-apps/website-ingestion-pipeline'
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Pipeline","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"kfp-pipeline-composer-ai-apps:tekton.dev/Pipeline:composer-ai-apps/website-ingestion-pipeline"},"name":"website-ingestion-pipeline","namespace":"composer-ai-apps"},"spec":{"params":[{"default":"https://github.com/redhat-composer-ai/data-ingestion","description":"Repo URL","name":"GIT_URL","type":"string"},{"default":"https://www.redhat.com/en/topics/containers/red-hat-openshift-okd","description":"The website url to be ingested","name":"WEBSITE_URL","type":"string"},{"default":"WebScrapedData","description":"The vector db index where the website scrape to be ingested","name":"VECTORDB_INDEX","type":"string"},{"default":"website-ingestion-pipeline.py","description":"The location of the python script containing the kfp pipeline for website ingestion","name":"KFP_SCRIPT","type":"string"},{"default":"kfp/website-ingestor","description":"The direcotry of the KFP_SCRIPT for website ingestion","name":"PATH_CONTEXT","type":"string"},{"default":"main","name":"GIT_REVISION","type":"string"},{"default":"3.11-ubi9","name":"PYTHON_IMAGE","type":"string"},{"default":"image-registry.openshift-image-registry.svc:5000/composer-ai-apps/dspa","name":"TARGET_IMAGE","type":"string"},{"default":"https://ds-pipeline-dspa-composer-ai-apps.apps.cluster-84nkq.84nkq.sandbox118.opentlc.com","name":"KUBEFLOW_ENDPOINT","type":"string"}],"tasks":[{"name":"git-clone","params":[{"name":"URL","value":"$(params.GIT_URL)"},{"name":"REVISION","value":"$(params.GIT_REVISION)"}],"taskRef":{"params":[{"name":"kind","value":"task"},{"name":"name","value":"git-clone"},{"name":"namespace","value":"openshift-pipelines"}],"resolver":"cluster"},"workspaces":[{"name":"output","workspace":"source"}]},{"name":"s2i-python","params":[{"name":"VERSION","value":"$(params.PYTHON_IMAGE)"},{"name":"CONTEXT","value":"$(params.PATH_CONTEXT)"},{"name":"IMAGE","value":"$(params.TARGET_IMAGE)"}],"runAfter":["git-clone"],"taskRef":{"params":[{"name":"kind","value":"task"},{"name":"name","value":"s2i-python"},{"name":"namespace","value":"openshift-pipelines"}],"resolver":"cluster"},"workspaces":[{"name":"source","workspace":"source"}]},{"name":"execute-website-ingestion-kubeflow-pipeline","params":[{"name":"IMAGE","value":"$(params.TARGET_IMAGE)"},{"name":"TAG","value":"latest"},{"name":"SCRIPT","value":"$(params.KFP_SCRIPT)"},{"name":"KUBEFLOW_ENDPOINT","value":"$(params.KUBEFLOW_ENDPOINT)"},{"name":"WEBSITE_URL","value":"$(params.WEBSITE_URL)"},{"name":"VECTORDB_INDEX","value":"$(params.VECTORDB_INDEX)"}],"runAfter":["s2i-python"],"taskRef":{"kind":"Task","name":"execute-website-ingestion-kubeflow-pipeline"}}],"workspaces":[{"name":"source"}]}}
+  creationTimestamp: '2025-10-31T11:42:00Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:argocd.argoproj.io/tracking-id': {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+        'f:spec':
+          .: {}
+          'f:params': {}
+          'f:tasks': {}
+          'f:workspaces': {}
+      manager: argocd-controller
+      operation: Update
+      time: '2025-10-31T11:42:00Z'
   name: website-ingestion-pipeline
+  namespace: composer-ai-apps
+  resourceVersion: '43587'
+  uid: f2336b10-fb85-4127-b205-0efc20c21d41
 spec:
-  workspaces:
-    - name: source
   params:
-    - default: '{{ .Values.defaults.git.url }}'
+    - default: 'https://github.com/redhat-composer-ai/data-ingestion'
       description: Repo URL
       name: GIT_URL
       type: string
-    - default: '{{ .Values.defaults.git.website_ingestion_url }}'
+    - default: 'https://www.redhat.com/en/topics/containers/red-hat-openshift-okd'
       description: The website url to be ingested
       name: WEBSITE_URL
       type: string
-    - default: '{{ .Values.defaults.git.vectordb_index }}'
-      name: VECTORDB_INDEX
+    - default: WebScrapedData
       description: The vector db index where the website scrape to be ingested
-      type: string    
-    - default: '{{ .Values.defaults.git.website_ingestion_script }}'
+      name: VECTORDB_INDEX
+      type: string
+    - default: website-ingestion-pipeline.py
       description: The location of the python script containing the kfp pipeline for website ingestion
       name: KFP_SCRIPT
-      type: string  
-    - default: '{{ .Values.defaults.git.website_ingestion_path }}'
+      type: string
+    - default: kfp/website-ingestor
       description: The direcotry of the KFP_SCRIPT for website ingestion
       name: PATH_CONTEXT
       type: string
-    - default: '{{ .Values.defaults.git.revision }}'
+    - default: main
       name: GIT_REVISION
       type: string
-    - default: {{ .Values.defaults.python_image | default "3.11-ubi9" }}
+    - default: 3.11-ubi9
       name: PYTHON_IMAGE
       type: string
-    - default: 'image-registry.openshift-image-registry.svc:5000/{{ .Release.Namespace }}/dspa'
+    - default: 'image-registry.openshift-image-registry.svc:5000/composer-ai-apps/dspa'
       name: TARGET_IMAGE
       type: string
-    - default: 'https://ds-pipeline-dspa-{{ .Release.Namespace }}.{{ $.Values.clusterDomain }}'
+    - default: 'https://ds-pipeline-dspa-composer-ai-apps.apps.cluster-84nkq.84nkq.sandbox118.opentlc.com'
       name: KUBEFLOW_ENDPOINT
       type: string
   tasks:
@@ -45,8 +69,6 @@ spec:
           value: $(params.GIT_URL)
         - name: REVISION
           value: $(params.GIT_REVISION)
-        # - name: gitInitImage
-        #   value: 'registry.redhat.io/openshift-pipelines/pipelines-git-init-rhel8@sha256:868966ef9d4b54952d8a74eb83bba40eb1f52c0148994fa704efd0e3797c61c5'
       taskRef:
         params:
           - name: kind
@@ -92,11 +114,14 @@ spec:
         - name: KUBEFLOW_ENDPOINT
           value: $(params.KUBEFLOW_ENDPOINT)
         - name: WEBSITE_URL
-          value: $(params.WEBSITE_URL)    
+          value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
-          value: $(params.VECTORDB_INDEX)    
+          value: $(params.VECTORDB_INDEX)
       runAfter:
         - s2i-python
       taskRef:
         kind: Task
         name: execute-website-ingestion-kubeflow-pipeline
+  workspaces:
+    - name: source
+
