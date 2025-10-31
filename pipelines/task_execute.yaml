@@ -1,15 +1,16 @@
 apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: execute-notebook
+  name: execute-kubeflow-pipeline
   namespace: ml
 spec:
   params:
     - name: IMAGE
       type: string
-    - name: NOTEBOOK_PATH
+    - name: TAG
       type: string
-    - name: PATH_CONTEXT
+      default: latest
+    - name: NOTEBOOK_PATH
       type: string
     - name: KUBEFLOW_ENDPOINT
       type: string
@@ -20,16 +21,13 @@ spec:
   workspaces:
     - name: source
   steps:
-    - name: run-notebook
-      image: $(params.IMAGE)
+    - name: execute-notebook
+      image: $(params.IMAGE):$(params.TAG)
       script: |
         #!/bin/sh
-        set -e
-        cd $(workspaces.source.path)/$(params.PATH_CONTEXT)
-        echo "Executing notebook..."
-        ls -l
-        python $(params.NOTEBOOK_PATH) \
-          --kubeflow-endpoint $(params.KUBEFLOW_ENDPOINT) \
-          --website-url $(params.WEBSITE_URL) \
-          --vectordb-index $(params.VECTORDB_INDEX)
+        cd $(workspaces.source.path)
+        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
+        # Qui puoi aggiungere il comando Python per invocare Kubeflow
+        # es: python run_pipeline.py --endpoint $(params.KUBEFLOW_ENDPOINT) --url $(params.WEBSITE_URL)
+
 
