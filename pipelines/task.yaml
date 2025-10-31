@@ -35,13 +35,8 @@ spec:
         - name: KUBEFLOW_ENDPOINT
           value: $(inputs.params.KUBEFLOW_ENDPOINT)
       script: |
-        # Install papermill if not already present
         pip install --no-cache-dir papermill
-        # Execute the notebook with parameters
         papermill $(inputs.params.NOTEBOOK) output.ipynb \
           -p WEBSITE_URL $(WEBSITE_URL) \
           -p VECTORDB_INDEX $(VECTORDB_INDEX)
-
-
-
 
