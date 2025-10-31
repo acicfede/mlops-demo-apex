@@ -19,7 +19,9 @@ spec:
           image: quay.io/quay/busybox:latest
           command: ["sh", "-c"]
           args:
-            - mkdir -p /workspace/jupyter-work-dir
+            - mkdir -p /workspace/jupyter-work-dir \
+              && touch /workspace/jupyter-work-dir/requirements-current.txt \
+              && chmod -R 777 /workspace/jupyter-work-dir
           volumeMounts:
             - mountPath: /workspace/jupyter-work-dir
               name: workspace
@@ -30,15 +32,9 @@ spec:
           args:
             - |
               cd /workspace/jupyter-work-dir
-              # scarica bootstrapper e requirements Elyra
               [[ -f bootstrapper.py ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o bootstrapper.py
               [[ -f requirements-elyra.txt ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
-
-              # installa pip, packaging e pacchetti richiesti
               python3 -m pip install --upgrade pip packaging
-              python3 -m pip install -r requirements-elyra.txt
-
-              # esegui bootstrapper
               python3 bootstrapper.py --pipeline-name "untitled1" \
                 --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
                 --cos-bucket "mlpipeline-artifacts" \
@@ -62,5 +58,5 @@ spec:
                   name: minio-secret
                   key: AWS_SECRET_ACCESS_KEY
             - name: S3_VERIFY_SSL
-              value: "false"  # salta la verifica SSL
+              value: "false"  # skippa SSL
   backoffLimit: 1
