@@ -1,32 +1,47 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: execute-kubeflow-pipeline
+  namespace: ml
+  labels:
+    app.kubernetes.io/instance: elyra-pipeline
 spec:
-  description: >-
-    This task will execute a python script, triggering a kubeflow pipeline
+  description: Executes a Jupyter notebook using Papermill to trigger a Kubeflow pipeline
   params:
     - name: IMAGE
-      description: The image used to execute the script
       type: string
+      description: Base image containing Python and required packages
     - name: TAG
-      description: The tag for the image
       type: string
-      default: "latest"
-    - name: SCRIPT
-      description: The location of the script to be executed
+      default: latest
+    - name: NOTEBOOK_PATH
+      type: string
+      description: Path of the notebook to execute
     - name: KUBEFLOW_ENDPOINT
-      description: The endpoint URL for Kubeflow
+      type: string
       default: "https://ds-pipeline-dspa:8443"
+      description: Kubeflow Pipelines endpoint
+    - name: WEBSITE_URL
+      type: string
+      description: Website to ingest
+    - name: VECTORDB_INDEX
+      type: string
+      description: Vector DB index target
   steps:
-    - name: execute-python
-      image: $(inputs.params.IMAGE):$(inputs.params.TAG)
-      env:
-        - name: KUBEFLOW_ENDPOINT
-          value: $(inputs.params.KUBEFLOW_ENDPOINT)
-        - name: BASE_IMAGE
-          value: $(inputs.params.IMAGE):$(inputs.params.TAG)
-        - name: CLUSTER_DOMAIN
-          value: '{{ $.Values.clusterDomain }}'
+    - name: run-notebook
+      image: $(params.IMAGE):$(params.TAG)
+      workingDir: /workspace/source
       script: |
-        python $(inputs.params.SCRIPT)
+        #!/usr/bin/env bash
+        set -eux
+
+        echo "Installing dependencies..."
+        pip install --quiet papermill jupyter kfp boto3
+
+        echo "Executing notebook: $(params.NOTEBOOK_PATH)"
+        papermill "$(params.NOTEBOOK_PATH)" "executed-notebook.ipynb" \
+          -p kubeflow_endpoint "$(params.KUBEFLOW_ENDPOINT)" \
+          -p website_url "$(params.WEBSITE_URL)" \
+          -p vectordb_index "$(params.VECTORDB_INDEX)"
+
+        echo "Notebook execution completed successfully!"
