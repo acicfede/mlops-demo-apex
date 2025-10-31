@@ -6,42 +6,36 @@ metadata:
   labels:
     app.kubernetes.io/instance: elyra-pipeline
 spec:
-  description: Executes a Jupyter notebook using Papermill to trigger a Kubeflow pipeline
+  description: Execute a Jupyter notebook to launch a Kubeflow pipeline
   params:
     - name: IMAGE
       type: string
-      description: Base image containing Python and required packages
+      description: The container image to use
     - name: TAG
       type: string
+      description: The tag for the image
       default: latest
     - name: NOTEBOOK_PATH
       type: string
-      description: Path of the notebook to execute
+      description: Path to the notebook to execute
     - name: KUBEFLOW_ENDPOINT
       type: string
-      default: "https://ds-pipeline-dspa:8443"
-      description: Kubeflow Pipelines endpoint
+      description: Kubeflow endpoint URL
     - name: WEBSITE_URL
       type: string
       description: Website to ingest
     - name: VECTORDB_INDEX
       type: string
-      description: Vector DB index target
+      description: Vector DB index name
+  workspaces:
+    - name: source
   steps:
     - name: run-notebook
-      image: $(params.IMAGE):$(params.TAG)
-      workingDir: /workspace/source
+      image: "$(params.IMAGE):$(params.TAG)"
+      workingDir: "$(workspaces.source.path)/$(params.PATH_CONTEXT)"
       script: |
-        #!/usr/bin/env bash
-        set -eux
+        #!/bin/sh
+        set -e
+        pip install --no-cache-dir jupyter pandas numpy
+        jupyter nbconvert --to notebook --execute $(params.NOTEBOOK_PATH)
 
-        echo "Installing dependencies..."
-        pip install --quiet papermill jupyter kfp boto3
-
-        echo "Executing notebook: $(params.NOTEBOOK_PATH)"
-        papermill "$(params.NOTEBOOK_PATH)" "executed-notebook.ipynb" \
-          -p kubeflow_endpoint "$(params.KUBEFLOW_ENDPOINT)" \
-          -p website_url "$(params.WEBSITE_URL)" \
-          -p vectordb_index "$(params.VECTORDB_INDEX)"
-
-        echo "Notebook execution completed successfully!"
