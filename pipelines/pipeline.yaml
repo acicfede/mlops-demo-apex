@@ -95,7 +95,7 @@ spec:
         - name: VERSION
           value: $(params.PYTHON_IMAGE)
         - name: CONTEXT
-          value: $(params.PATH_CONTEXT)
+          value: "."
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
       workspaces:
