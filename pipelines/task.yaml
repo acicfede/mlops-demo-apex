@@ -39,4 +39,3 @@ spec:
         papermill $(inputs.params.NOTEBOOK) output.ipynb \
           -p WEBSITE_URL $(WEBSITE_URL) \
           -p VECTORDB_INDEX $(VECTORDB_INDEX)
-
