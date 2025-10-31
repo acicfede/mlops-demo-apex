@@ -84,6 +84,16 @@ spec:
               - --build-arg
               - BASE_IMAGE=$(params.BASE_IMAGE)
               - .
+      params:
+        - name: BASE_IMAGE
+          value: $(params.BASE_IMAGE)
+        - name: TARGET_IMAGE
+          value: $(params.TARGET_IMAGE)
+        - name: PATH_CONTEXT
+          value: $(params.PATH_CONTEXT)
+      workspaces:
+        - name: source
+          workspace: source
 
     - name: execute-kubeflow-pipeline
       runAfter:
@@ -104,5 +114,4 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
-
 
