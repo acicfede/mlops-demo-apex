@@ -1,0 +1,72 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  annotations:
+    argocd.argoproj.io/tracking-id: 'kfp-pipeline-composer-ai-apps:tekton.dev/Task:composer-ai-apps/execute-website-ingestion-kubeflow-pipeline'
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"tekton.dev/v1beta1","kind":"Task","metadata":{"annotations":{"argocd.argoproj.io/tracking-id":"kfp-pipeline-composer-ai-apps:tekton.dev/Task:composer-ai-apps/execute-website-ingestion-kubeflow-pipeline"},"name":"execute-website-ingestion-kubeflow-pipeline","namespace":"composer-ai-apps"},"spec":{"description":"This task will execute a python script, triggering a kubeflow pipeline","params":[{"description":"The image used to execute the script","name":"IMAGE","type":"string"},{"default":"latest","description":"The tag for the image","name":"TAG","type":"string"},{"description":"The location of the script to be executed","name":"SCRIPT"},{"default":"https://ds-pipeline-dspa:8443","description":"The endpoint URL for Kubeflow","name":"KUBEFLOW_ENDPOINT"},{"default":"https://www.redhat.com/en/topics/containers/red-hat-openshift-okd","description":"The website url to be ingested","name":"WEBSITE_URL"},{"default":"WebScrapedData","description":"The vector db index where the website scrape to be ingested","name":"VECTORDB_INDEX"}],"steps":[{"env":[{"name":"WEBSITE_URL","value":"$(inputs.params.WEBSITE_URL)"},{"name":"VECTORDB_INDEX","value":"$(inputs.params.VECTORDB_INDEX)"},{"name":"KUBEFLOW_ENDPOINT","value":"$(inputs.params.KUBEFLOW_ENDPOINT)"},{"name":"BASE_IMAGE","value":"$(inputs.params.IMAGE):$(inputs.params.TAG)"},{"name":"CLUSTER_DOMAIN","value":"apps.cluster-84nkq.84nkq.sandbox118.opentlc.com"}],"image":"$(inputs.params.IMAGE):$(inputs.params.TAG)","name":"execute-python","script":"python $(inputs.params.SCRIPT)\n"}]}}
+  creationTimestamp: '2025-10-31T11:42:00Z'
+  generation: 1
+  managedFields:
+    - apiVersion: tekton.dev/v1beta1
+      fieldsType: FieldsV1
+      fieldsV1:
+        'f:metadata':
+          'f:annotations':
+            .: {}
+            'f:argocd.argoproj.io/tracking-id': {}
+            'f:kubectl.kubernetes.io/last-applied-configuration': {}
+        'f:spec':
+          .: {}
+          'f:description': {}
+          'f:params': {}
+          'f:steps': {}
+      manager: argocd-controller
+      operation: Update
+      time: '2025-10-31T11:42:00Z'
+  name: execute-website-ingestion-kubeflow-pipeline
+  namespace: composer-ai-apps
+  resourceVersion: '43537'
+  uid: ea7dd256-33aa-4c48-a38c-93ceee2f778c
+spec:
+  description: 'This task will execute a python script, triggering a kubeflow pipeline'
+  params:
+    - description: The image used to execute the script
+      name: IMAGE
+      type: string
+    - default: latest
+      description: The tag for the image
+      name: TAG
+      type: string
+    - description: The location of the script to be executed
+      name: SCRIPT
+      type: string
+    - default: 'https://ds-pipeline-dspa:8443'
+      description: The endpoint URL for Kubeflow
+      name: KUBEFLOW_ENDPOINT
+      type: string
+    - default: 'https://www.redhat.com/en/topics/containers/red-hat-openshift-okd'
+      description: The website url to be ingested
+      name: WEBSITE_URL
+      type: string
+    - default: WebScrapedData
+      description: The vector db index where the website scrape to be ingested
+      name: VECTORDB_INDEX
+      type: string
+  steps:
+    - computeResources: {}
+      env:
+        - name: WEBSITE_URL
+          value: $(inputs.params.WEBSITE_URL)
+        - name: VECTORDB_INDEX
+          value: $(inputs.params.VECTORDB_INDEX)
+        - name: KUBEFLOW_ENDPOINT
+          value: $(inputs.params.KUBEFLOW_ENDPOINT)
+        - name: BASE_IMAGE
+          value: '$(inputs.params.IMAGE):$(inputs.params.TAG)'
+        - name: CLUSTER_DOMAIN
+          value: apps.cluster-84nkq.84nkq.sandbox118.opentlc.com
+      image: '$(inputs.params.IMAGE):$(inputs.params.TAG)'
+      name: execute-python
+      script: |
+        python $(inputs.params.SCRIPT)
