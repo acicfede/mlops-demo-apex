@@ -4,47 +4,57 @@ metadata:
   name: website-ingestion-pipeline
   namespace: ml
 spec:
+  description: |
+    Tekton pipeline che:
+    1. Clona il repository MLOps demo
+    2. Costruisce un'immagine Python con S2I
+    3. Esegue il notebook che avvia una pipeline Kubeflow
+
   params:
     - name: GIT_URL
       type: string
-      description: Repository URL
-      default: "https://github.com/redhat-composer-ai/data-ingestion"
+      description: Repository contenente il notebook
+      default: "https://github.com/acicfede/mlops-demo-apex.git"
 
     - name: GIT_REVISION
       type: string
+      description: Branch o tag da clonare
       default: "main"
-
-    - name: WEBSITE_URL
-      type: string
-      description: The website URL to be ingested
-      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
-
-    - name: VECTORDB_INDEX
-      type: string
-      description: The vector DB index where the website scrape will be ingested
-      default: "WebScrapedData"
 
     - name: KFP_SCRIPT
       type: string
-      description: Path to the Python script or notebook for Kubeflow pipeline
-      default: "website-ingestion-pipeline.py"
+      description: Path al notebook da eseguire
+      default: "pipelines/Check_for_new_docs.ipynb"
 
     - name: PATH_CONTEXT
       type: string
-      description: Directory of the pipeline script
-      default: "kfp/website-ingestor"
+      description: Directory di build S2I
+      default: "pipelines"
 
     - name: PYTHON_IMAGE
       type: string
+      description: Versione base dell’immagine Python
       default: "3.11-ubi9"
 
     - name: TARGET_IMAGE
       type: string
+      description: Immagine da costruire
       default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
 
     - name: KUBEFLOW_ENDPOINT
       type: string
+      description: Endpoint del Kubeflow Pipelines API
       default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+
+    - name: WEBSITE_URL
+      type: string
+      description: URL del sito da elaborare
+      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+
+    - name: VECTORDB_INDEX
+      type: string
+      description: Nome dell’indice del vettore
+      default: "WebScrapedData"
 
   workspaces:
     - name: source
@@ -102,7 +112,7 @@ spec:
         - name: IMAGE
           value: $(params.TARGET_IMAGE)
         - name: TAG
-          value: latest
+          value: "latest"
         - name: SCRIPT
           value: $(params.KFP_SCRIPT)
         - name: KUBEFLOW_ENDPOINT
@@ -111,5 +121,4 @@ spec:
           value: $(params.WEBSITE_URL)
         - name: VECTORDB_INDEX
           value: $(params.VECTORDB_INDEX)
-
 
