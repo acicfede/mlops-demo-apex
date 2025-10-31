@@ -21,10 +21,9 @@ spec:
           args:
             - |
               cd /workspace/jupyter-work-dir
-              # Scarica bootstrapper.py e requirements solo se non esistono
+              # Scarica bootstrapper.py solo se non esiste
               [[ -f bootstrapper.py ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o bootstrapper.py
-              [[ -f requirements-elyra.txt ]] || curl -k -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
-              python3 -m pip install --upgrade pip packaging
+              # Salta completamente l'installazione dei pacchetti
               python3 bootstrapper.py --pipeline-name "untitled1" \
                 --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
                 --cos-bucket "mlpipeline-artifacts" \
