@@ -12,7 +12,7 @@ spec:
   params:
     - name: GIT_URL
       type: string
-      default: "https://github.com/redhat-composer-ai/data-ingestion"
+      default: "https://github.com/acicfede/mlops-demo-apex/pipelines"
       description: Repository URL
     - name: WEBSITE_URL
       type: string
