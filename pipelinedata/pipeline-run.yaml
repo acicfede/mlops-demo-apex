@@ -1,14 +1,16 @@
 apiVersion: tekton.dev/v1
 kind: PipelineRun
 metadata:
-  name: launch-kfp-run
+  name: kfp-run-demo
+  namespace: ml
 spec:
+  serviceAccountName: default
   pipelineRef:
     name: launch-kfp-pipeline
   params:
     - name: pipeline-yaml-url
       value: "https://raw.githubusercontent.com/acicfede/mlops-demo-apex/3f039965efa41265e3299b18fe654297c05e2f0f/pipelines/kfppipeline.yaml"
     - name: pipeline-name
-      value: "untitled2"
-     - name: kfp-endpoint
-      value: "https://ds-pipeline-dspa-NAMESPACE.apps.TUOCLUSTER/pipeline"
+      value: "mlops-demo-pipeline"
+    - name: kfp-endpoint
+      value: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
