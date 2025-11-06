@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: launch-kfp-run
+spec:
+  pipelineRef:
+    name: launch-kfp-pipeline
+  params:
+    - name: pipeline-yaml-url
+      value: "https://URL_DEL_TUO_FILE/untitled2.yaml"
+    - name: pipeline-name
+      value: "untitled2"
