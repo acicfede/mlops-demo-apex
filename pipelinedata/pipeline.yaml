@@ -6,8 +6,9 @@ spec:
   params:
     - name: pipeline-yaml-url
     - name: pipeline-name
+    - name: kfp-endpoint
   tasks:
-    - name: upload-and-run
+    - name: upload-run
       taskRef:
         name: run-kfp-yaml
       params:
@@ -15,3 +16,5 @@ spec:
           value: "$(params.pipeline-yaml-url)"
         - name: pipeline-name
           value: "$(params.pipeline-name)"
+        - name: kfp-endpoint
+          value: "$(params.kfp-endpoint)"
