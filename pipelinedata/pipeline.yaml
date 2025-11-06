@@ -1,0 +1,17 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: launch-kfp-pipeline
+spec:
+  params:
+    - name: pipeline-yaml-url
+    - name: pipeline-name
+  tasks:
+    - name: upload-and-run
+      taskRef:
+        name: run-kfp-yaml
+      params:
+        - name: pipeline-yaml-url
+          value: "$(params.pipeline-yaml-url)"
+        - name: pipeline-name
+          value: "$(params.pipeline-name)"
