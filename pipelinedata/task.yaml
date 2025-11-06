@@ -19,12 +19,12 @@ spec:
         fi
 
         echo "Scarico la pipeline..."
-        curl -L "$(params.pipeline-yaml-url)" -o pipeline.yaml
+        curl -k -L "$(params.pipeline-yaml-url)" -o pipeline.yaml
 
         TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
 
         echo "Upload della pipeline a KFP..."
-        curl -X POST "$(params.kfp-endpoint)/apis/v1beta1/pipelines/upload" \
+        curl -k -X POST "$(params.kfp-endpoint)/apis/v1beta1/pipelines/upload" \
           -H "Authorization: Bearer $TOKEN" \
           -F "uploadfile=@pipeline.yaml" \
           -F "name=$(params.pipeline-name)" \
@@ -38,7 +38,7 @@ spec:
         echo "Pipeline ID: $PIPELINE_ID"
 
         echo "Avvio della pipeline..."
-        curl -X POST "$(params.kfp-endpoint)/apis/v1beta1/runs" \
+        curl -k -X POST "$(params.kfp-endpoint)/apis/v1beta1/runs" \
           -H "Authorization: Bearer $TOKEN" \
           -H "Content-Type: application/json" \
           -d "{
