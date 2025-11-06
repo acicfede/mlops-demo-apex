@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: run-kfp-yaml
+spec:
+  params:
+    - name: pipeline-yaml-url
+      type: string
+    - name: pipeline-name
+      type: string
+  steps:
+    - name: run-pipeline
+      image: quay.io/opendatahub/kfp-cli:latest     # immagine con kfp CLI
+      script: |
+        echo "Scarico il file pipeline..."
+        curl -L "$(params.pipeline-yaml-url)" -o pipeline.yaml
+
+        echo "Invio pipeline a Data Science Pipelines..."
+        kfp pipeline upload -f pipeline.yaml -n $(params.pipeline-name)
