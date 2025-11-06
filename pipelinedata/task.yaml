@@ -10,7 +10,7 @@ spec:
       type: string
   steps:
     - name: run-pipeline
-      image: quay.io/opendatahub/kfp-cli:latest     # immagine con kfp CLI
+      image: python:3.11-slim     # immagine con kfp CLI
       script: |
         echo "Scarico il file pipeline..."
         curl -L "$(params.pipeline-yaml-url)" -o pipeline.yaml
