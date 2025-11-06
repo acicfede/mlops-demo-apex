@@ -7,6 +7,6 @@ spec:
     name: launch-kfp-pipeline
   params:
     - name: pipeline-yaml-url
-      value: "https://URL_DEL_TUO_FILE/untitled2.yaml"
+      value: "https://github.com/acicfede/mlops-demo-apex/blob/29ab733d89d3401c59ce9521ad8ec20ca517ab86/pipelines/kfppipeline.yaml"
     - name: pipeline-name
       value: "untitled2"
