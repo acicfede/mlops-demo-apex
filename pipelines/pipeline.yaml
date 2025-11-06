@@ -1,0 +1,120 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: website-ingestion-pipeline
+  namespace: ml
+spec:
+  description: |
+    Pipeline Tekton che:
+    1. Clona il repository MLOps demo
+    2. Costruisce un'immagine Python con S2I
+    3. Esegue il notebook che avvia una pipeline Kubeflow
+
+  params:
+    - name: GIT_URL
+      type: string
+      default: "https://github.com/acicfede/mlops-demo-apex.git"
+      description: Repository contenente il notebook
+
+    - name: GIT_REVISION
+      type: string
+      default: "main"
+      description: Branch o tag da clonare
+
+    - name: KFP_SCRIPT
+      type: string
+      default: "pipelines/Check_for_new_docs.ipynb"
+      description: Path al notebook da eseguire
+
+    - name: PATH_CONTEXT
+      type: string
+      default: "pipelines"
+      description: Directory di build S2I
+
+    - name: PYTHON_IMAGE
+      type: string
+      default: "default-route-openshift-image-registry.apps.privateailab.acic.accenture/openshift/python:3.9-ubi9"
+      description: Versione base dell’immagine Python
+
+    - name: TARGET_IMAGE
+      type: string
+      default: "image-registry.openshift-image-registry.svc:5000/ml/dspa"
+      description: Immagine da costruire
+
+    - name: KUBEFLOW_ENDPOINT
+      type: string
+      default: "https://ds-pipeline-dspa-ml.apps.privateailab.acic.accenture"
+      description: Endpoint del Kubeflow Pipelines API
+
+    - name: WEBSITE_URL
+      type: string
+      default: "https://www.redhat.com/en/topics/containers/red-hat-openshift-okd"
+      description: URL del sito da elaborare
+
+    - name: VECTORDB_INDEX
+      type: string
+      default: "WebScrapedData"
+      description: Nome dell’indice del vettore
+
+  workspaces:
+    - name: source
+
+  tasks:
+    - name: git-clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: Task
+          - name: name
+            value: git-clone
+      params:
+        - name: URL
+          value: $(params.GIT_URL)
+        - name: REVISION
+          value: $(params.GIT_REVISION)
+      workspaces:
+        - name: output
+          workspace: source
+
+    - name: s2i-python
+      runAfter:
+        - git-clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: Task
+          - name: name
+            value: s2i-python
+      params:
+        - name: VERSION
+          value: $(params.PYTHON_IMAGE)
+        - name: CONTEXT
+          value: $(params.PATH_CONTEXT)
+        - name: IMAGE
+          value: $(params.TARGET_IMAGE)
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: execute-notebook
+      runAfter:
+        - s2i-python
+      taskRef:
+        kind: Task
+        name: execute-website-ingestion-kubeflow-pipeline
+      params:
+        - name: IMAGE
+          value: $(params.TARGET_IMAGE)
+        - name: TAG
+          value: "latest"
+        - name: SCRIPT
+          value: $(params.KFP_SCRIPT)
+        - name: KUBEFLOW_ENDPOINT
+          value: $(params.KUBEFLOW_ENDPOINT)
+        - name: WEBSITE_URL
+          value: $(params.WEBSITE_URL)
+        - name: VECTORDB_INDEX
+          value: $(params.VECTORDB_INDEX)
+
