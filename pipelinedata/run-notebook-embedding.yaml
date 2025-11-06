@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: run-notebook-embedding
+spec:
+  steps:
+  - name: run-notebook
+    image: quay.io/modh/runtime-images@sha256:e1a8b40864bf2e0646316eb0ff89566e8c5650462b5a629c799b5882e70d0f21
+    env:
+      - name: ELYRA_RUNTIME_ENV
+        value: "kfp"
+      - name: ELYRA_ENABLE_PIPELINE_INFO
+        value: "True"
+      - name: ELYRA_WRITABLE_CONTAINER_DIR
+        value: "/tmp"
+      - name: ELYRA_RUN_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.uid
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: minio-secret
+            key: AWS_ACCESS_KEY_ID
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: minio-secret
+            key: AWS_SECRET_ACCESS_KEY
+    script: |
+      mkdir -p ./jupyter-work-dir && cd ./jupyter-work-dir
+
+      if [[ -f /opt/app-root/bin/utils/bootstrapper.py ]]; then
+        cp /opt/app-root/bin/utils/bootstrapper.py .
+      else
+        curl -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/elyra/kfp/bootstrapper.py -o bootstrapper.py
+      fi
+
+      if [[ -f /opt/app-root/bin/utils/requirements-elyra.txt ]]; then
+        cp /opt/app-root/bin/utils/requirements-elyra.txt .
+      else
+        curl -L https://raw.githubusercontent.com/opendatahub-io/elyra/v4.2.0/etc/generic/requirements-elyra.txt -o requirements-elyra.txt
+      fi
+
+      pip install packaging
+      python3 bootstrapper.py \
+        --pipeline-name "untitled2" \
+        --cos-endpoint "https://minio-api-ml.apps.privateailab.acic.accenture" \
+        --cos-bucket "mlpipeline-artifacts" \
+        --cos-directory "untitled2-1106154754" \
+        --cos-dependencies-archive "Document Embedding with Metadata-2f7db751-25ad-49ee-9cf1-847b45e3c90c.tar.gz" \
+        --file "pipelinedata/notebooks/Document Embedding with Metadata.ipynb"
