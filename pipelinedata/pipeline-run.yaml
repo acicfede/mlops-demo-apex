@@ -10,3 +10,5 @@ spec:
       value: "https://github.com/acicfede/mlops-demo-apex/blob/29ab733d89d3401c59ce9521ad8ec20ca517ab86/pipelines/kfppipeline.yaml"
     - name: pipeline-name
       value: "untitled2"
+     - name: kfp-endpoint
+      value: "https://ds-pipeline-dspa-NAMESPACE.apps.TUOCLUSTER/pipeline"
