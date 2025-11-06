@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: elyra-untitled2-pipeline
+spec:
+  tasks:
+    - name: check-new-docs
+      taskRef:
+        name: run-notebook-check-docs
+
+    - name: embedding
+      runAfter:
+        - check-new-docs
+      taskRef:
+        name: run-notebook-embedding
