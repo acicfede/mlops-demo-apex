@@ -5,7 +5,7 @@ metadata:
   namespace: ml-benchmark
 spec:
   accessModes: [ "ReadWriteMany" ]
-  storageClassName: "mcp-pf-fs-storageclass"
+  storageClassName: "nfs-csi"
   resources:
     requests:
       storage: 200Gi
