@@ -1,0 +1,8 @@
+resources:
+  - apps/namespace.yaml
+  - apps/pvc-models.yaml
+  - apps/pvc-results.yaml
+  - apps/deployment-vllm.yaml
+  - apps/service-vllm.yaml
+  # NOT included intentionally:
+  # - apps/job-benchmark.yaml
