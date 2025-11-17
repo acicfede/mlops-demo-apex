@@ -2,49 +2,36 @@ apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
   annotations:
-    openshift.io/display-name: llama3.2-1b
+    openshift.io/display-name: llama-32-3b-instruct
     serving.knative.openshift.io/enablePassthrough: 'true'
+    serving.kserve.io/deploymentMode: Serverless
     sidecar.istio.io/inject: 'true'
     sidecar.istio.io/rewriteAppHTTPProbers: 'true'
-  name: llama32-1b
-  finalizers:
-    - inferenceservice.finalizers
+  name: llama-32-3b-instruct # (1)
   labels:
     opendatahub.io/dashboard: 'true'
 spec:
   predictor:
     maxReplicas: 1
     minReplicas: 1
-    model:
+    model: # (2)
+      args:
+        - '--dtype=half'
+        - '--max_model_len=8192'
+        - '--gpu_memory_utilization=.95'
+        - '--enable-auto-tool-choice'
+        - '--tool_call_parser=llama3_json'
       modelFormat:
         name: vLLM
       name: ''
       resources:
         limits:
-          cpu: '6'
-          memory: 16Gi
+          cpu: '8'
+          memory: 10Gi
           nvidia.com/gpu: '1'
         requests:
           cpu: '4'
           memory: 8Gi
           nvidia.com/gpu: '1'
-      runtime: llama32-1b
-      storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-1b-instruct'
-    tolerations:
-      - effect: NoSchedule
-        key: nvidia.com/gpu
----
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: llama32-1b-route
-  namespace: ml
-spec:
-  to:
-    kind: Service
-    name: llama32-1b-predictor-default
-  port:
-    targetPort: 8080
-  tls:
-    termination: edge
-
+      runtime: llama-32-3b-instruct
+      storageUri: 'oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-3b-instruct' # (3)
