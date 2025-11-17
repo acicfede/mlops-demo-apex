@@ -2,8 +2,8 @@ apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   annotations:
-    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]' # (1)
-    openshift.io/display-name: vLLM ServingRuntime for KServe # (2)
+    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
+    openshift.io/display-name: vLLM ServingRuntime for KServe
   labels:
     opendatahub.io/dashboard: "true"
   name: llama-32-3b-instruct
@@ -30,7 +30,7 @@ quay.io/modh/vllm@sha256:0d55419f3d168fd80868a36ac89815dded9e063937a8409b7edf352
     ports:
       - containerPort: 8080
         protocol: TCP
-  multiModel: false # (4)
-  supportedModelFormats: # (5) 
+  multiModel: false
+  supportedModelFormats: 
     - autoSelect: true
       name: vLLM
