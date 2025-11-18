@@ -1,0 +1,51 @@
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: data-lab
+  namespace: ml
+  annotations:
+    notebooks.opendatahub.io/inject-oauth: "true"
+    opendatahub.io/image-display-name: Jupyter | Data Science | CPU | Python 3.12
+    notebooks.opendatahub.io/last-size-selection: Small
+    openshift.io/display-name: data-lab
+    openshift.io/description: Workbench con repository Git pre-clonato
+spec:
+  template:
+    spec:
+      serviceAccountName: data-lab
+      containers:
+        - name: data-lab
+          image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2
+          imagePullPolicy: Always
+          env:
+            - name: NOTEBOOK_ARGS
+              value: |
+                --ServerApp.port=8888
+                --ServerApp.token=''
+                --ServerApp.password=''
+                --ServerApp.base_url=/notebook/ml/data-lab
+                --ServerApp.quit_button=False
+          ports:
+            - containerPort: 8888
+              name: notebook-port
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "2"
+              memory: 8Gi
+            requests:
+              cpu: "1"
+              memory: 8Gi
+          volumeMounts:
+            - mountPath: /opt/app-root/src
+              name: data-lab-pvc
+            - mountPath: /dev/shm
+              name: shm
+          workingDir: /opt/app-root/src
+      volumes:
+        - name: data-lab-pvc
+          persistentVolumeClaim:
+            claimName: data-lab-pvc
+        - emptyDir:
+            medium: Memory
+          name: shm
