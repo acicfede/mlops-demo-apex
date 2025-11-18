@@ -1,0 +1,25 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: datalab
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/acicfede/mlops-demo-apex.git
+    targetRevision: main
+    path: data-pipeline-enablement 
+    kustomize:
+      namePrefix: datalab-
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: datalab
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
