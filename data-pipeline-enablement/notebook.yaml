@@ -6,6 +6,7 @@ metadata:
   annotations:
     notebooks.opendatahub.io/inject-oauth: "true"
     opendatahub.io/image-display-name: Jupyter | Data Science | CPU | Python 3.12
+    notebooks.opendatahub.io/last-image-selection: "s2i-generic-data-science-notebook:2024.2"
     notebooks.opendatahub.io/last-size-selection: Small
     openshift.io/display-name: data-lab
     openshift.io/description: Workbench con repository Git pre-clonato
@@ -25,25 +26,14 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/ml/data-lab
                 --ServerApp.quit_button=False
-          ports:
-            - containerPort: 8888
-              name: notebook-port
-              protocol: TCP
-          resources:
-            limits:
-              cpu: "2"
-              memory: 8Gi
-            requests:
-              cpu: "1"
-              memory: 8Gi
           volumeMounts:
             - mountPath: /opt/app-root/src
-              name: data-lab-pvc
+              name: workbench-storage
             - mountPath: /dev/shm
               name: shm
           workingDir: /opt/app-root/src
       volumes:
-        - name: data-lab-pvc
+        - name: workbench-storage
           persistentVolumeClaim:
             claimName: data-lab-pvc
         - emptyDir:
