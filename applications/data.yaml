@@ -3,17 +3,16 @@ kind: Application
 metadata:
   name: datalab
   namespace: openshift-gitops
-source:
+spec:
+  destination:
+    namespace: ml
+    server: https://kubernetes.default.svc
+  source:
+    path: data-pipeline-enablement
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
-    path: data-pipeline-enablement 
-    kustomize:
-      namePrefix: datalab-
-
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: datalab
-
+  sources: []
+  project: ml-project
   syncPolicy:
     automated:
       prune: true
