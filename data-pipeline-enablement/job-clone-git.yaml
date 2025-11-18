@@ -1,8 +1,11 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: clone-pipeline-skeleton
+  name: data-lab-clone-repo
   namespace: ml
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
 spec:
   template:
     spec:
@@ -10,14 +13,18 @@ spec:
       containers:
         - name: clone-repo
           image: alpine/git:latest
-          command: ["/bin/sh", "-c"]
+          command: ["/bin/sh","-c"]
           args:
             - |
               set -e
-              echo "Pulizia directory /opt/app-root/src..."
-              rm -rf /opt/app-root/src/*
-              echo "✅ Clonazione repository pipeline-skeleton..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /opt/app-root/src
+              cd /opt/app-root/src
+              if [ ! -d ".git" ]; then
+                echo "✅ Clonazione repository pipeline-skeleton..."
+                git clone https://github.com/acicfede/pipeline-skeleton.git .
+              else
+                echo "📦 Repository già presente, aggiorno con git pull..."
+                git config --global --add safe.directory /opt/app-root/src
+                git pull
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
