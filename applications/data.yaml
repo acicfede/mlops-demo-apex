@@ -2,11 +2,8 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: datalab
-  namespace: argocd
-spec:
-  project: default
-
-  source:
+  namespace: openshift-gitops
+source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
     path: data-pipeline-enablement 
