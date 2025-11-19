@@ -9,4 +9,4 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: mcp-pf-fs-storageclass
+  storageClassName: lvms-vg1-immediate
