@@ -14,10 +14,16 @@ spec:
           args:
             - |
               set -e
-              echo "Pulizia directory /opt/app-root/src..."
+              echo "Clonazione repo in directory temporanea..."
+              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
+
+              echo "Pulizia contenuto PVC..."
               rm -rf /opt/app-root/src/*
-              echo "✅ Clonazione repository pipeline-skeleton..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /opt/app-root/src
+
+              echo "Copia dei file dentro il PVC..."
+              cp -R /tmp/repo/* /opt/app-root/src/
+
+              echo "Operazione completata!"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
@@ -25,3 +31,4 @@ spec:
         - name: workbench-storage
           persistentVolumeClaim:
             claimName: data-lab-pvc
+
