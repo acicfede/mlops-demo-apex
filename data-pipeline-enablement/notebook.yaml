@@ -14,7 +14,7 @@ metadata:
     notebooks.opendatahub.io/last-image-version-git-commit-selection: be38cca
     opendatahub.io/hardware-profile-namespace: ml
     opendatahub.io/username: admin
-	opendatahub.io/hardware-profile-name: medium-notebooks-wz9u9
+    opendatahub.io/hardware-profile-name: medium-notebooks-wz9u9
     openshift.io/description: Complete workbench cloned from ml-workbench
     openshift.io/display-name: nuovo-workbench
 spec:
@@ -167,4 +167,5 @@ spec:
           secret:
             secretName: ml-workbench-tls
             defaultMode: 420
+
 
