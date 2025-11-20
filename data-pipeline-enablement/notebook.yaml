@@ -1,53 +1,170 @@
 apiVersion: kubeflow.org/v1
 kind: Notebook
 metadata:
-  name: data-lab
+  name: nuovo-workbench
   namespace: ml
+  labels:
+    app: nuovo-workbench
   annotations:
-    notebooks.opendatahub.io/inject-oauth: "true"
-    opendatahub.io/image-display-name: Jupyter | Data Science | CPU | Python 3.12
+    notebooks.opendatahub.io/inject-oauth: 'true'
+    opendatahub.io/image-display-name: Standard Data Science
+    notebooks.opendatahub.io/oauth-logout-url: 'https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench'
+    notebooks.opendatahub.io/last-image-selection: 's2i-generic-data-science-notebook:2024.2'
     notebooks.opendatahub.io/last-size-selection: Small
-    openshift.io/display-name: data-lab
-    openshift.io/description: Workbench con repository Git pre-clonato
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: be38cca
+    opendatahub.io/hardware-profile-namespace: ml
+    opendatahub.io/username: admin
+	opendatahub.io/hardware-profile-name: medium-notebooks-wz9u9
+    openshift.io/description: Complete workbench cloned from ml-workbench
+    openshift.io/display-name: nuovo-workbench
 spec:
   template:
     spec:
-      serviceAccountName: data-lab
+      serviceAccountName: ml-workbench
+      enableServiceLinks: false
       containers:
-        - name: data-lab
+        - name: nuovo-workbench
           image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2
           imagePullPolicy: Always
+          workingDir: /opt/app-root/src
           env:
             - name: NOTEBOOK_ARGS
               value: |
                 --ServerApp.port=8888
                 --ServerApp.token=''
                 --ServerApp.password=''
-                --ServerApp.base_url=/notebook/ml/data-lab
+                --ServerApp.base_url=/notebook/ml/nuovo-workbench
                 --ServerApp.quit_button=False
+            - name: PIP_CERT
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: REQUESTS_CA_BUNDLE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: SSL_CERT_FILE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: PIPELINES_SSL_SA_CERTS
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: GIT_SSL_CAINFO
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
           ports:
             - containerPort: 8888
               name: notebook-port
               protocol: TCP
           resources:
             limits:
-              cpu: "2"
+              cpu: '2'
               memory: 8Gi
             requests:
-              cpu: "1"
+              cpu: '1'
               memory: 8Gi
           volumeMounts:
             - mountPath: /opt/app-root/src
-              name: data-lab-pvc
+              name: workbench-storage
             - mountPath: /dev/shm
               name: shm
-          workingDir: /opt/app-root/src
+            - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+              name: trusted-ca
+              readOnly: true
+              subPath: ca-bundle.crt
+            - mountPath: /opt/app-root/pipeline-runtimes/
+              name: runtime-images
+            - mountPath: /opt/app-root/runtimes
+              name: elyra-dsp-details
+        - name: oauth-proxy
+          image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4f8d66597feeb32bb18699326029f9a71a5aca4a57679d636b876377c2e95695
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8443
+              name: oauth-proxy
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/oauth/client
+              name: oauth-client
+            - mountPath: /etc/oauth/config
+              name: oauth-config
+            - mountPath: /etc/tls/private
+              name: tls-certificates
+          args:
+            - '--provider=openshift'
+            - '--https-address=:8443'
+            - '--http-address='
+            - '--openshift-service-account=ml-workbench'
+            - '--cookie-secret-file=/etc/oauth/config/cookie_secret'
+            - '--cookie-expire=24h0m0s'
+            - '--tls-cert=/etc/tls/private/tls.crt'
+            - '--tls-key=/etc/tls/private/tls.key'
+            - '--upstream=http://localhost:8888'
+            - '--upstream-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+            - '--email-domain=*'
+            - '--skip-provider-button'
+            - '--client-id=nuovo-workbench-ml-oauth-client'
+            - '--client-secret-file=/etc/oauth/client/secret'
+            - '--scope=user:info user:check-access'
+            - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"nuovo-workbench","namespace":"$(NAMESPACE)"}'
+            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench'
       volumes:
-        - name: data-lab-pvc
+        - name: workbench-storage
           persistentVolumeClaim:
-            claimName: data-lab-pvc
-        - emptyDir:
+            claimName: nuovo-workbench-pvc
+        - name: shm
+          emptyDir:
             medium: Memory
-          name: shm
-
+        - name: trusted-ca
+          configMap:
+            name: workbench-trusted-ca-bundle
+            items:
+              - key: ca-bundle.crt
+                path: ca-bundle.crt
+            optional: true
+        - name: runtime-images
+          configMap:
+            name: pipeline-runtime-images
+            optional: true
+        - name: elyra-dsp-details
+          secret:
+            secretName: ds-pipeline-config
+            optional: true
+        - name: oauth-config
+          secret:
+            secretName: ml-workbench-oauth-config
+            defaultMode: 420
+        - name: oauth-client
+          secret:
+            secretName: ml-workbench-oauth-client
+            defaultMode: 420
+        - name: tls-certificates
+          secret:
+            secretName: ml-workbench-tls
+            defaultMode: 420
 
