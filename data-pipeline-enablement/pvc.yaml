@@ -5,8 +5,8 @@ metadata:
   namespace: ml
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
       storage: 10Gi
-  storageClassName: mcp-pf-fs-storageclass
+  storageClassName: nfs-csi
