@@ -21,27 +21,30 @@ spec:
           command:
             - /bin/sh
             - -c
-          args:
-            - |
-              set -e
-              echo "Clonazione repo in directory temporanea..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
+          args: |
+            set -e
+            echo "Clonazione repo..."
+            git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
 
-              echo "Pulizia della directory repo/ nel PVC..."
-              mkdir -p /opt/app-root/src/repo
-              rm -rf /opt/app-root/src/repo/*
-              rm -rf /opt/app-root/src/repo/.[!.]*
-              rm -rf /opt/app-root/src/repo/.??*
+            echo "Pulizia repo/ nel PVC..."
+            mkdir -p /opt/app-root/src/repo
+            rm -rf /opt/app-root/src/repo/*
+            rm -rf /opt/app-root/src/repo/.[!.]*
+            rm -rf /opt/app-root/src/repo/.??*
 
-              echo "Rimozione della cartella pre-filled del Workbench..."
-              rm -rf /opt/app-root/src/pre-filled
+            echo "Rimozione pre-filled del Workbench..."
+            rm -rf /opt/app-root/src/pre-filled
 
-              echo "Copia del contenuto del repo (inclusa pre-filled/) nel PVC..."
-              cp -R /tmp/repo/* /opt/app-root/src/repo/
+            echo "Copia dei file nel PVC..."
+            cp -R /tmp/repo/* /opt/app-root/src/repo/
 
-              echo "Operazione completata!"
+            echo "Impostazione permessi corretti..."
+            # UID 1000 è l'utente del Workbench
+            chown -R 1000:1000 /opt/app-root/src/repo
+            chmod -R u+rwX /opt/app-root/src/repo
+
+            echo "Operazione completata!"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
-
 
