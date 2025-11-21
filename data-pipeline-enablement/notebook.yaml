@@ -7,14 +7,13 @@ metadata:
     app: nuovo-workbench
   annotations:
     notebooks.opendatahub.io/inject-oauth: 'true'
-    opendatahub.io/image-display-name: Standard Data Science
+    opendatahub.io/image-display-name: Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12
     notebooks.opendatahub.io/oauth-logout-url: 'https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench'
-    notebooks.opendatahub.io/last-image-selection: 's2i-generic-data-science-notebook:2024.2'
-    notebooks.opendatahub.io/last-size-selection: Small
+    notebooks.opendatahub.io/last-image-selection: 'jupyter-pytorch-llmcompressor:2025.2'
+    notebooks.opendatahub.io/last-size-selection: ''
     notebooks.opendatahub.io/last-image-version-git-commit-selection: be38cca
     opendatahub.io/hardware-profile-namespace: ml
     opendatahub.io/username: admin
-    opendatahub.io/hardware-profile-name: medium-notebooks-wz9u9
     openshift.io/description: Complete workbench cloned from ml-workbench
     openshift.io/display-name: nuovo-workbench
 spec:
