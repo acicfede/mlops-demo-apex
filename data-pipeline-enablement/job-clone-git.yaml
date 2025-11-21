@@ -11,16 +11,16 @@ spec:
       serviceAccountName: default
       containers:
         - name: clone-repo
-          image: registry.access.redhat.com/ubi9/ubi:latest
+          image: registry.access.redhat.com/ubi9/ubi-init:latest
           command: ["/bin/bash", "-c"]
           args:
             - |
               set -e
 
               echo "Installazione git..."
-              microdnf install -y git
+              dnf install -y git
 
-              echo "Clonazione repository in /tmp/repo..."
+              echo "Clonazione repository..."
               git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
 
               echo "Rimozione directory pre-filled di sistema..."
@@ -30,14 +30,14 @@ spec:
               mkdir -p /opt/app-root/src/repo
               rm -rf /opt/app-root/src/repo/*
 
-              echo "Copia del repository nel PVC..."
+              echo "Copia repository..."
               cp -R /tmp/repo/* /opt/app-root/src/repo/
 
               echo "Correzione permessi (UID Workbench = 1001750000)..."
               chown -R 1001750000:1001750000 /opt/app-root/src/repo
               chmod -R u+rwX /opt/app-root/src/repo
 
-              echo "Completato con successo!"
+              echo "FINITO con successo!"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
@@ -45,3 +45,4 @@ spec:
         - name: workbench-storage
           persistentVolumeClaim:
             claimName: nuovo-workbench-pvc
+
