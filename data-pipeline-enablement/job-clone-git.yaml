@@ -24,28 +24,17 @@ spec:
           args:
             - |
               set -e
-
-              echo "Clonazione repo in /tmp/repo..."
+              echo "Clonazione repo in directory temporanea..."
               git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
 
-              echo "Elimina il pre-filled di sistema (read-only)..."
-              rm -rf /opt/app-root/src/pre-filled || true
-
-              echo "Ripulisce repo/ nel PVC..."
+              echo "Pulizia contenuto della sottodirectory PVC..."
               mkdir -p /opt/app-root/src/repo
               rm -rf /opt/app-root/src/repo/*
-              rm -rf /opt/app-root/src/repo/.[!.]*
-              rm -rf /opt/app-root/src/repo/.??*
 
-              echo "Copia contenuto del repository nel PVC..."
+              echo "Copia dei file dentro la sottodirectory del PVC..."
               cp -R /tmp/repo/* /opt/app-root/src/repo/
-
-              echo "Rende TUTTO modificabile (UID del Workbench = 1000)..."
-              chown -R 1000:1000 /opt/app-root/src/repo
-              chmod -R u+rwX /opt/app-root/src/repo
 
               echo "Operazione completata!"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
-
