@@ -27,20 +27,21 @@ spec:
               echo "Clonazione repo in directory temporanea..."
               git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
 
-              echo "Pulizia COMPLETA della sottodirectory PVC..."
+              echo "Pulizia della directory repo/ nel PVC..."
               mkdir -p /opt/app-root/src/repo
               rm -rf /opt/app-root/src/repo/*
               rm -rf /opt/app-root/src/repo/.[!.]*
               rm -rf /opt/app-root/src/repo/.??*
 
-              echo "Rimozione cartella pre-filled dal repo temporaneo..."
-              rm -rf /tmp/repo/pre-filled
+              echo "Rimozione della cartella pre-filled del Workbench..."
+              rm -rf /opt/app-root/src/pre-filled
 
-              echo "Copia dei file dentro la sottodirectory del PVC..."
+              echo "Copia del contenuto del repo (inclusa pre-filled/) nel PVC..."
               cp -R /tmp/repo/* /opt/app-root/src/repo/
 
               echo "Operazione completata!"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
+
 
