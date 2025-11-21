@@ -23,7 +23,7 @@ spec:
       enableServiceLinks: false
       containers:
         - name: nuovo-workbench
-          image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/s2i-generic-data-science-notebook:2024.2
+          image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/jupyter-pytorch-llmcompressor:2025.2
           imagePullPolicy: Always
           workingDir: /opt/app-root/src
           env:
