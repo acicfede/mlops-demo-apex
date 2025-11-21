@@ -5,36 +5,43 @@ metadata:
   namespace: ml
 spec:
   backoffLimit: 6
-  completions: 1
-  parallelism: 1
   template:
     spec:
-      restartPolicy: OnFailure
+      restartPolicy: Never
+      serviceAccountName: default
+      containers:
+        - name: clone-repo
+          image: registry.access.redhat.com/ubi9/ubi:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "Installazione git..."
+              microdnf install -y git
+
+              echo "Clonazione repository in /tmp/repo..."
+              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
+
+              echo "Rimozione directory pre-filled di sistema..."
+              rm -rf /opt/app-root/src/pre-filled || true
+
+              echo "Pulizia directory repo nel PVC..."
+              mkdir -p /opt/app-root/src/repo
+              rm -rf /opt/app-root/src/repo/*
+
+              echo "Copia del repository nel PVC..."
+              cp -R /tmp/repo/* /opt/app-root/src/repo/
+
+              echo "Correzione permessi (UID Workbench = 1001750000)..."
+              chown -R 1001750000:1001750000 /opt/app-root/src/repo
+              chmod -R u+rwX /opt/app-root/src/repo
+
+              echo "Completato con successo!"
+          volumeMounts:
+            - name: workbench-storage
+              mountPath: /opt/app-root/src
       volumes:
         - name: workbench-storage
           persistentVolumeClaim:
             claimName: nuovo-workbench-pvc
-      containers:
-        - name: clone-repo
-          image: alpine/git:latest
-          imagePullPolicy: Always
-          command:
-            - /bin/sh
-            - -c
-          args:
-            - |
-              set -e
-              echo "Clonazione repo in directory temporanea..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
-
-              echo "Pulizia contenuto della sottodirectory PVC..."
-              mkdir -p /opt/app-root/src/repo
-              rm -rf /opt/app-root/src/repo/*
-
-              echo "Copia dei file dentro la sottodirectory del PVC..."
-              cp -R /tmp/repo/* /opt/app-root/src/repo/
-
-              echo "Operazione completata!"
-          volumeMounts:
-            - name: workbench-storage
-              mountPath: /opt/app-root/src
