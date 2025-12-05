@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Tutte le risorse che già gestisci
+resources:
+  - grafana.yaml
+  - mlflow-server.yaml
+  - postgresql.yaml
+
+# Generazione automatica della ConfigMap contenente la dashboard MLflow
+configMapGenerator:
+  - name: grafana-dashboard-mlflow
+    namespace: mlflow
+    files:
+      - mlflow-training-dashboard.json=dashboards/mlflow-training-dashboard.json
+
+# Evita che Kustomize aggiunga hash nei nomi (ArgoCD li ricarica automaticamente senza hash)
+configurations: []
+generatorOptions:
+  disableNameSuffixHash: true
