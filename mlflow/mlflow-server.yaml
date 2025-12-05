@@ -70,6 +70,7 @@ spec:
             - "--cookie-secret=SECRET"
             - "--openshift-delegate-urls={\"/\": {\"group\":\"route.openshift.io\", \"resource\":\"routes\", \"verb\": \"get\", \"namespace\":\"rosa\"}}"
             - "--openshift-sar={\"verb\":\"get\",\"resource\":\"routes\",\"resourceAPIGroup\":\"route.openshift.io\",\"namespace\":\"mlflow\"}"
+            - "--skip-auth-regex=^/api/2\\.0/.*$"
 
         - name: mlflow
           image: docker.io/hemaveeradhi/mlflow:amd64
