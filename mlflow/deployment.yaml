@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-server
+  namespace: mlflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: mlflow-server
+  template:
+    metadata:
+      labels:
+        name: mlflow-server
+    spec:
+      serviceAccountName: mlflow
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: oauth-proxy
+          image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: https
+              containerPort: 8443
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 100m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+          volumeMounts:
+            - name: proxy-tls
+              mountPath: /etc/tls/private
+          livenessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: 8443
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          args:
+            - --https-address=:8443
+            - --provider=openshift
+            - --openshift-service-account=mlflow
+            - --upstream=http://localhost:5000
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --cookie-secret=SECRET
+            - --openshift-delegate-urls={"\/": {"group":"route.openshift.io", "resource":"routes", "verb": "get", "namespace":"rosa"}}
+            - --openshift-sar={"verb":"get","resource":"routes","resourceAPIGroup":"route.openshift.io","namespace":"mlflow"}
+
+        - name: mlflow
+          image: docker.io/hemaveeradhi/mlflow:amd64
+          imagePullPolicy: IfNotPresent
+          command: ["mlflow"]
+          args:
+            - server
+            - --host
+            - 0.0.0.0
+            - --backend-store-uri
+            - postgresql://admin:admin@postgresql.mlflow.svc.cluster.local:5432/db?sslmode=disable
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 1Gi
+            requests:
+              cpu: 500m
+              memory: 1Gi
+
+      volumes:
+        - name: proxy-tls
+          secret:
+            secretName: proxy-tls
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600
