@@ -5,7 +5,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-ds-prometheus
-  namespace: mlflow
+  namespace: monitoring-tools
 data:
   prometheus.yaml: |
     apiVersion: 1
