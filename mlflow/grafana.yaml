@@ -38,26 +38,44 @@ data:
 # ---------------------------------------------------------
 # ConfigMap: MLflow Postgres datasource
 # ---------------------------------------------------------
+# ---------------------------------------------------------
+# ConfigMap: Dashboard Providers
+# ---------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-ds-mlflow
+  name: grafana-dashboard-providers
   namespace: mlflow
 data:
-  mlflow.yaml: |
+  dashboards.yaml: |
     apiVersion: 1
-    datasources:
-      - name: MLflow-PostgreSQL
-        type: postgres
-        access: proxy
-        url: postgresql.mlflow.svc.cluster.local:5432
-        user: admin
-        secureJsonData:
-          password: admin
-        jsonData:
-          sslmode: disable
-        database: db
-        isDefault: false
+    providers:
+      # -----------------------------
+      # MLflow Dashboards
+      # -----------------------------
+      - name: 'mlflow'
+        orgId: 1
+        folder: 'MLflow'
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        options:
+          path: /etc/grafana/provisioning/dashboards/mlflow
+
+      # -----------------------------
+      # vLLM Dashboards
+      # -----------------------------
+      - name: 'vllm'
+        orgId: 1
+        folder: 'vLLM'
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        options:
+          path: /etc/grafana/provisioning/dashboards/vllm
+
 ---
 # ---------------------------------------------------------
 # ConfigMap: Dashboard Providers
