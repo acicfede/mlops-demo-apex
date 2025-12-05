@@ -3,17 +3,30 @@ kind: Kustomization
 
 namespace: mlflow
 
+# -------------------------------------------------------------------
+# Risorse statiche (Deployment, PVC, Datasource CM, Route, Secret…)
+# -------------------------------------------------------------------
 resources:
   - grafana.yaml
   - mlflow-server.yaml
   - postgresql.yaml
 
+# -------------------------------------------------------------------
+# Genera automaticamente le ConfigMap con le dashboard JSON
+# -------------------------------------------------------------------
 configMapGenerator:
   - name: grafana-dashboard-mlflow
     namespace: mlflow
     files:
-      - dashboards/mlflow-training-dashboard.json
-      - dashboards/vllm-dashboard.json
+      - mlflow-training-dashboard.json=./dashboards/mlflow-training-dashboard.json
 
+  - name: grafana-dashboard-vllm
+    namespace: mlflow
+    files:
+      - vllm-dashboard.json=./dashboards/vllm-dashboard.json
+
+# -------------------------------------------------------------------
+# Permette rigenerazione automatica delle CM se i file cambiano
+# -------------------------------------------------------------------
 generatorOptions:
   disableNameSuffixHash: true
