@@ -1,24 +1,4 @@
-# --------------------------------------
-# Dashboard for Grafana
-# --------------------------------------
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboard-providers
-  namespace: mlflow
-data:
-  dashboards.yaml: |
-    apiVersion: 1
-    providers:
-      - name: 'mlflow'
-        orgId: 1
-        folder: 'MLflow'
-        type: file
-        disableDeletion: false
-        editable: true
-        updateIntervalSeconds: 10
-        options:
-          path: /etc/grafana/provisioning/dashboards/mlflow
+
 # --------------------------------------
 # PVC for Grafana
 # --------------------------------------
@@ -118,20 +98,27 @@ spec:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
           imagePullPolicy: IfNotPresent
-          ports:
-            - containerPort: 3000
+
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
 
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+
           volumeMounts:
-            # Persistence
+            # ------------------------------
+            # Persistent storage
+            # ------------------------------
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
-            # Datasources mounted as FILES (required by Grafana)
+            # ------------------------------
+            # Datasource provisioning
+            # ------------------------------
             - name: grafana-ds-mlflow
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
@@ -144,11 +131,28 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources/loki.yaml
               subPath: loki.yaml
 
+            # ------------------------------
+            # Dashboard provider
+            # ------------------------------
+            - name: grafana-dashboard-providers
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+
+            # ------------------------------
+            # MLflow dashboard (JSON)
+            # ConfigMap created automatically by Kustomize
+            # ------------------------------
+            - name: grafana-dashboard-mlflow
+              mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
+              subPath: mlflow-training-dashboard.json
+
       volumes:
+        # PVC storage for Grafana data
         - name: grafana-storage
           persistentVolumeClaim:
             claimName: grafana-data
 
+        # Datasource files provisioned from ConfigMaps
         - name: grafana-ds-mlflow
           configMap:
             name: grafana-ds-mlflow
@@ -160,6 +164,20 @@ spec:
         - name: grafana-ds-loki
           configMap:
             name: grafana-ds-loki
+
+        # Dashboard provider
+        - name: grafana-dashboard-providers
+          configMap:
+            name: grafana-dashboard-providers
+
+        # Dashboard JSON created by configMapGenerator
+        - name: grafana-dashboard-mlflow
+          configMap:
+            name: grafana-dashboard-mlflow
+
+      restartPolicy: Always
+      dnsPolicy: ClusterFirst
+      terminationGracePeriodSeconds: 30
 ---
 # --------------------------------------
 # Service Grafana
