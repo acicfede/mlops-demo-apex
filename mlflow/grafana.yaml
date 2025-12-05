@@ -1,18 +1,19 @@
-# --------------------------------------
-# Secret: Thanos OAuth Bearer Token
-# --------------------------------------
+---
+# -------------------------------------------------------------------
+# Secret containing Bearer Token for Thanos
+# -------------------------------------------------------------------
 apiVersion: v1
 kind: Secret
 metadata:
-  name: grafana-ds-prometheus-secret
+  name: grafana-thanos-secret
   namespace: mlflow
 type: Opaque
 stringData:
   token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NDg2NjUwNiwiaWF0IjoxNzY0ODYyOTA2LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiIzM2JhYTA0My0yMWI4LTRkN2ItODdhZi0wNzU5YTBlMWEzOGMiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1tb25pdG9yaW5nIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByb21ldGhldXMtazhzIiwidWlkIjoiOGFmMTczYjQtMmZjNy00YjBlLWEyYmEtZThjYTNhYmYxNjY3In19LCJuYmYiOjE3NjQ4NjI5MDYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtbW9uaXRvcmluZzpwcm9tZXRoZXVzLWs4cyJ9.QcbF9nqJmI-bk86vfb7OP9NLGOcz6y7pQ5aTWQWyuUUajiuFLzBFbEjAedN0v3_9ffZJGT0KetID_ygzacp6r1yMxmfdvACGWUk1dqRc7MpSEr1duhJBm03zqFnjc60p8VsgFZW4XdNkKHs4cnrISdht3AikTM1WWUkna1xC83TfmK38FGr4TQDmuZCG4c6sWATPTa6r-Q-YAJDKYQZrCD6YN-gGrnXfWudoBDQdWYx4O1ITt0aCdFO-QxfKB3PCE8NlfXGx12OMYdnFF-U2T7qiKCIbEkelwMdYdFkEIpDvECbnW_P1JOPfPlbABbnDQjQTKdyX6Ex7kvw1chnTgLiucqQRotZGD-9Kx3ed8BR_N7P4JwO3TF9jqcFI0cMOFl9FL8Y1iHz81iu8AlHQv5WolfUhyGR7kgA4yCV2aF3JpcheWqrXlSGFIzd9Q4aZwiPtYuYRI-22mF3LdxpEjjK0GBVJE-h25pi3OJC4d7mO5-Yk1Pzu2nxLGcCaYqqt71PnYdpBWQOD1bgOuyWNCfR4Q4RD3QmZJu5gMP1Tdpb1V1uU9T8su0-6uSL-PNavuWDTVhQJJ0JGSIDnhaFoc8UOA6VyIo9yw14riaah0WTqyqtMDOmwlkhzOhD7KAsIV2orCp-TTjk-WoC3KVnQMwbeWt7Q-FNeytMQ2fspa64"
 ---
-# --------------------------------------
-# ConfigMap: Thanos Datasource
-# --------------------------------------
+# -------------------------------------------------------------------
+# Thanos Prometheus Datasource
+# -------------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -28,16 +29,34 @@ data:
         url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
         isDefault: true
         jsonData:
-          httpMethod: GET
           tlsSkipVerify: true
-          timeInterval: "30s"
+          httpMethod: GET
           httpHeaderName1: "Authorization"
         secureJsonData:
           httpHeaderValue1: "Bearer ${PROM_TOKEN}"
 ---
-# --------------------------------------
-# PVC for Grafana
-# --------------------------------------
+# -------------------------------------------------------------------
+# Dashboard Providers
+# -------------------------------------------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-providers
+  namespace: mlflow
+data:
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: mlflow
+        orgId: 1
+        folder: MLflow
+        type: file
+        disableDeletion: false
+        editable: true
+        updateIntervalSeconds: 10
+        options:
+          path: /etc/grafana/provisioning/dashboards/mlflow
+---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -51,9 +70,9 @@ spec:
       storage: 5Gi
   storageClassName: mcp-pf-fs-storageclass
 ---
-# --------------------------------------
-# ConfigMap: MLflow PostgreSQL datasource
-# --------------------------------------
+# -------------------------------------------------------------------
+# MLflow PostgreSQL datasource
+# -------------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -75,31 +94,26 @@ data:
         database: db
         isDefault: false
 ---
-# --------------------------------------
-# ConfigMap: Dashboard Providers
-# --------------------------------------
+# -------------------------------------------------------------------
+# Loki datasource
+# -------------------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-dashboard-providers
+  name: grafana-ds-loki
   namespace: mlflow
 data:
-  dashboards.yaml: |
+  loki.yaml: |
     apiVersion: 1
-    providers:
-      - name: 'mlflow'
-        orgId: 1
-        folder: 'MLflow'
-        type: file
-        disableDeletion: false
-        editable: true
-        updateIntervalSeconds: 10
-        options:
-          path: /etc/grafana/provisioning/dashboards/mlflow
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
 ---
-# --------------------------------------
+# -------------------------------------------------------------------
 # Deployment Grafana
-# --------------------------------------
+# -------------------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -130,7 +144,7 @@ spec:
             - name: PROM_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: grafana-ds-prometheus-secret
+                  name: grafana-thanos-secret
                   key: token
 
           ports:
@@ -138,11 +152,10 @@ spec:
               protocol: TCP
 
           volumeMounts:
-            # Persistent data
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
-            # Datasources
+            # Datasource provisioning
             - name: grafana-ds-mlflow
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
@@ -151,15 +164,24 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
 
+            - name: grafana-ds-loki
+              mountPath: /etc/grafana/provisioning/datasources/loki.yaml
+              subPath: loki.yaml
+
             # Dashboard provider
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
-            # MLflow Dashboard JSON (must exist)
+            # Dashboard MLflow
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
+
+            # NEW: vLLM dashboard
+            - name: grafana-dashboard-vllm
+              mountPath: /etc/grafana/provisioning/dashboards/mlflow/vllm-dashboard.json
+              subPath: vllm-dashboard.json
 
       volumes:
         - name: grafana-storage
@@ -174,6 +196,10 @@ spec:
           configMap:
             name: grafana-ds-prometheus
 
+        - name: grafana-ds-loki
+          configMap:
+            name: grafana-ds-loki
+
         - name: grafana-dashboard-providers
           configMap:
             name: grafana-dashboard-providers
@@ -182,13 +208,14 @@ spec:
           configMap:
             name: grafana-dashboard-mlflow
 
-      restartPolicy: Always
-      dnsPolicy: ClusterFirst
-      terminationGracePeriodSeconds: 30
+        - name: grafana-dashboard-vllm
+          configMap:
+            name: grafana-dashboard-vllm
+
 ---
-# --------------------------------------
-# Service Grafana
-# --------------------------------------
+# -------------------------------------------------------------------
+# Service
+# -------------------------------------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
@@ -203,9 +230,9 @@ spec:
       port: 3000
       targetPort: 3000
 ---
-# --------------------------------------
-# Route Grafana (OpenShift)
-# --------------------------------------
+# -------------------------------------------------------------------
+# Route (OpenShift)
+# -------------------------------------------------------------------
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
