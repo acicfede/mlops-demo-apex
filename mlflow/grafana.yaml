@@ -1,17 +1,5 @@
 # ---------------------------------------------------------
-# Secret: Thanos OAuth Bearer Token
-# ---------------------------------------------------------
-apiVersion: v1
-kind: Secret
-metadata:
-  name: grafana-ds-prometheus-secret
-  namespace: mlflow
-type: Opaque
-stringData:
-  token: "eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NDg2NjUwNiwiaWF0IjoxNzY0ODYyOTA2LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiIzM2JhYTA0My0yMWI4LTRkN2ItODdhZi0wNzU5YTBlMWEzOGMiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1tb25pdG9yaW5nIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6InByb21ldGhldXMtazhzIiwidWlkIjoiOGFmMTczYjQtMmZjNy00YjBlLWEyYmEtZThjYTNhYmYxNjY3In19LCJuYmYiOjE3NjQ4NjI5MDYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtbW9uaXRvcmluZzpwcm9tZXRoZXVzLWs4cyJ9.QcbF9nqJmI-bk86vfb7OP9NLGOcz6y7pQ5aTWQWyuUUajiuFLzBFbEjAedN0v3_9ffZJGT0KetID_ygzacp6r1yMxmfdvACGWUk1dqRc7MpSEr1duhJBm03zqFnjc60p8VsgFZW4XdNkKHs4cnrISdht3AikTM1WWUkna1xC83TfmK38FGr4TQDmuZCG4c6sWATPTa6r-Q-YAJDKYQZrCD6YN-gGrnXfWudoBDQdWYx4O1ITt0aCdFO-QxfKB3PCE8NlfXGx12OMYdnFF-U2T7qiKCIbEkelwMdYdFkEIpDvECbnW_P1JOPfPlbABbnDQjQTKdyX6Ex7kvw1chnTgLiucqQRotZGD-9Kx3ed8BR_N7P4JwO3TF9jqcFI0cMOFl9FL8Y1iHz81iu8AlHQv5WolfUhyGR7kgA4yCV2aF3JpcheWqrXlSGFIzd9Q4aZwiPtYuYRI-22mF3LdxpEjjK0GBVJE-h25pi3OJC4d7mO5-Yk1Pzu2nxLGcCaYqqt71PnYdpBWQOD1bgOuyWNCfR4Q4RD3QmZJu5gMP1Tdpb1V1uU9T8su0-6uSL-PNavuWDTVhQJJ0JGSIDnhaFoc8UOA6VyIo9yw14riaah0WTqyqtMDOmwlkhzOhD7KAsIV2orCp-TTjk-WoC3KVnQMwbeWt7Q-FNeytMQ2fspa64"
----
-# ---------------------------------------------------------
-# ConfigMap: Thanos Prometheus datasource
+# ConfigMap: Thanos Prometheus datasource (CORRETTO)
 # ---------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
@@ -33,8 +21,8 @@ data:
           timeInterval: "30s"
           httpHeaderName1: Authorization
         secureJsonData:
-          httpHeaderValue1: >
-            Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NDk0NTk4NiwiaWF0IjoxNzY0OTQyMzg2LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiI2MWUwN2Q4ZS1lZmUxLTRmYzctYWFlNS03N2IxYWIyNzk0MjQiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1tb25pdG9yaW5nIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImdyYWZhbmEtdGhhbm9zIiwidWlkIjoiNGE3ODhjM2EtMzZhYi00YjRkLTg5NTItM2Q4Yjg0NmE5ZDkyIn19LCJuYmYiOjE3NjQ5NDIzODYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtbW9uaXRvcmluZzpncmFmYW5hLXRoYW5vcyJ9.gQaWA690jZP_9PU7e46nUiTY-og-thyVBo3xCkZ1lja-tSBScu6CNMWlkXlBlgKA6YfnGJgYnnxMqQbtNYE1TeqcOO0vrzgr0vQhDnzdXcWqRCTslBS6VGKizk6HkSW4OWqXK7cJDl_P1YJmxRAznhk8JS82EK99DQ3O8hLTeeOa7aH9F7s_1HqJ7WYZKhkYQ4PUdobWw4sS-dNtet6_45_x2si8IQuFXljlkJIPmcHwsysT4szTWN3nDstg7loLkvnsGXXY0ZT42AL7SEyS47vfj8LYlPtU8zaF9yJlDrYWf6-FBWi5LnpdxGTDMkJ0kH5qH5pdDy2VL9oPaP5xl9WQ0esVOR42Ghcr3Z291pQQFRjnFMHI6iDjpB4yc8-DA2tPEjjRahyaMnLmuFYU51VdVOTa29F53rPIPtY8np4AfB9v9bp1gCFRmquC6CrMU13_TL5JpNzrpVddd5oatE1_gq7bA_N34CUKHbXPxf4fEyQnZTJZpDBFDl_GiC65Y1Kwk5LkIY1YLIDJ4g3wvUWbV6fuDAUrhy8ypaWPYb0lDuPMgaY3jWoKgG4NrhUx9ymEiw3dO_12Waj1JrZyXw9LCEcbQzYArTGUworCzlNMjnvZKlsXhF_RTbQ1VAcLfYrTIDUGUh6VIdyS3Wh6YhW0ry1uxEr4wvmuNrNRhP8
+          httpHeaderValue1: "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NDk0NTk4NiwiaWF0IjoxNzY0OTQyMzg2LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiI2MWUwN2Q4ZS1lZmUxLTRmYzctYWFlNS03N2IxYWIyNzk0MjQiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1tb25pdG9yaW5nIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImdyYWZhbmEtdGhhbm9zIiwidWlkIjoiNGE3ODhjM2EtMzZhYi00YjRkLTg5NTItM2Q4Yjg0NmE5ZDkyIn19LCJuYmYiOjE3NjQ5NDIzODYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtbW9uaXRvcmluZzpncmFmYW5hLXRoYW5vcyJ9.gQaWA690jZP_9PU7e46nUiTY-og-thyVBo3xCkZ1lja-tSBScu6CNMWlkXlBlgKA6YfnGJgYnnxMqQbtNYE1TeqcOO0vrzgr0vQhDnzdXcWqRCTslBS6VGKizk6HkSW4OWqXK7cJDl_P1YJmxRAznhk8JS82EK99DQ3O8hLTeeOa7aH9F7s_1HqJ7WYZKhkYQ4PUdobWw4sS-dNtet6_45_x2si8IQuFXljlkJIPmcHwsysT4szTWN3nDstg7loLkvnsGXXY0ZT42AL7SEyS47vfj8LYlPtU8zaF9yJlDrYWf6-FBWi5LnpdxGTDMkJ0kH5qH5pdDy2VL9oPaP5xl9WQ0esVOR42Ghcr3Z291pQQFRjnFMHI6iDjpB4yc8-DA2tPEjjRahyaMnLmuFYU51VdVOTa29F53rPIPtY8np4AfB9v9bp1gCFRmquC6CrMU13_TL5JpNzrpVddd5oatE1_gq7bA_N34CUKHbXPxf4fEyQnZTJZpDBFDl_GiC65Y1Kwk5LkIY1YLIDJ4g3wvUWbV6fuDAUrhy8ypaWPYb0lDuPMgaY3jWoKgG4NrhUx9ymEiw3dO_12Waj1JrZyXw9LCEcbQzYArTGUworCzlNMjnvZKlsXhF_RTbQ1VAcLfYrTIDUGUh6VIdyS3Wh6YhW0ry1uxEr4wvmuNrNRhP8"
+---
 # ---------------------------------------------------------
 # ConfigMap: MLflow Postgres datasource
 # ---------------------------------------------------------
@@ -57,7 +45,6 @@ data:
         jsonData:
           sslmode: disable
         database: db
-        isDefault: false
 ---
 # ---------------------------------------------------------
 # ConfigMap: Dashboard Providers (MLflow + vLLM)
@@ -71,20 +58,20 @@ data:
   dashboards.yaml: |
     apiVersion: 1
     providers:
-      - name: 'mlflow'
-        folder: 'MLflow'
+      - name: mlflow
+        folder: MLflow
         type: file
         options:
           path: /etc/grafana/provisioning/dashboards/mlflow
 
-      - name: 'vllm'
-        folder: 'vLLM'
+      - name: vllm
+        folder: vLLM
         type: file
         options:
           path: /etc/grafana/provisioning/dashboards/vllm
 ---
 # ---------------------------------------------------------
-# PVC for Grafana
+# PVC per Grafana
 # ---------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -100,7 +87,7 @@ spec:
   storageClassName: mcp-pf-fs-storageclass
 ---
 # ---------------------------------------------------------
-# Deployment Grafana
+# Deployment Grafana (PULITO + CORRETTO)
 # ---------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -121,39 +108,40 @@ spec:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
 
+          ports:
+            - containerPort: 3000
+
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
-            - name: PROM_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: grafana-ds-prometheus-secret
-                  key: token
 
           volumeMounts:
+            # data
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
-            # Datasources
+            # datasources
             - name: grafana-ds-mlflow
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
+
             - name: grafana-ds-prometheus
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
 
-            # Providers
+            # dashboard providers
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
-            # Dashboards
+            # mlflow dashboard
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
 
+            # vllm dashboard
             - name: grafana-dashboard-vllm
               mountPath: /etc/grafana/provisioning/dashboards/vllm/vllm-dashboard.json
               subPath: vllm-dashboard.json
@@ -200,7 +188,7 @@ spec:
       targetPort: 3000
 ---
 # ---------------------------------------------------------
-# Route Grafana (OpenShift)
+# Route Grafana
 # ---------------------------------------------------------
 apiVersion: route.openshift.io/v1
 kind: Route
