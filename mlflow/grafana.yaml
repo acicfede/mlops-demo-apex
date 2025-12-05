@@ -1,6 +1,6 @@
-# ------------------------------
-# PVC per Grafana
-# ------------------------------
+# --------------------------------------
+# PVC for Grafana
+# --------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -14,15 +14,14 @@ spec:
       storage: 5Gi
   storageClassName: mcp-pf-fs-storageclass
 ---
-# ------------------------------
-# ConfigMap Datasource MLflow PostgreSQL
-# ------------------------------
+# --------------------------------------
+# ConfigMap: MLflow PostgreSQL datasource
+# --------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-ds-mlflow
   namespace: mlflow
-  annotations:
 data:
   mlflow.yaml: |
     apiVersion: 1
@@ -34,22 +33,19 @@ data:
         user: admin
         secureJsonData:
           password: admin
-        database: db
         jsonData:
           sslmode: disable
-          postgresVersion: 13
+        database: db
         isDefault: false
-        editable: true
 ---
-# ------------------------------
-# ConfigMap Datasource Prometheus
-# ------------------------------
+# --------------------------------------
+# ConfigMap: Prometheus datasource
+# --------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-ds-prometheus
   namespace: mlflow
-  annotations:
 data:
   prometheus.yaml: |
     apiVersion: 1
@@ -59,17 +55,15 @@ data:
         access: proxy
         url: http://prometheus-operated:9090
         isDefault: true
-        editable: true
 ---
-# ------------------------------
-# ConfigMap Datasource Loki
-# ------------------------------
+# --------------------------------------
+# ConfigMap: Loki datasource
+# --------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-ds-loki
   namespace: mlflow
-  annotations:
 data:
   loki.yaml: |
     apiVersion: 1
@@ -78,11 +72,10 @@ data:
         type: loki
         access: proxy
         url: http://loki:3100
-        editable: true
 ---
-# ------------------------------
+# --------------------------------------
 # Deployment Grafana
-# ------------------------------
+# --------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -90,7 +83,6 @@ metadata:
   namespace: mlflow
   labels:
     app: grafana
-  annotations:
 spec:
   replicas: 1
   selector:
@@ -107,40 +99,50 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 3000
-              protocol: TCP
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
+
           volumeMounts:
+            # Persistence
             - name: grafana-storage
               mountPath: /var/lib/grafana
+
+            # Datasources mounted as FILES (required by Grafana)
             - name: grafana-ds-mlflow
-              mountPath: /etc/grafana/provisioning/datasources/mlflow
+              mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
+              subPath: mlflow.yaml
+
             - name: grafana-ds-prometheus
-              mountPath: /etc/grafana/provisioning/datasources/prometheus
+              mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
+              subPath: prometheus.yaml
+
             - name: grafana-ds-loki
-              mountPath: /etc/grafana/provisioning/datasources/loki
+              mountPath: /etc/grafana/provisioning/datasources/loki.yaml
+              subPath: loki.yaml
+
       volumes:
         - name: grafana-storage
           persistentVolumeClaim:
             claimName: grafana-data
+
         - name: grafana-ds-mlflow
           configMap:
             name: grafana-ds-mlflow
+
         - name: grafana-ds-prometheus
           configMap:
             name: grafana-ds-prometheus
+
         - name: grafana-ds-loki
           configMap:
             name: grafana-ds-loki
-      restartPolicy: Always
-      terminationGracePeriodSeconds: 30
 ---
-# ------------------------------
+# --------------------------------------
 # Service Grafana
-# ------------------------------
+# --------------------------------------
 apiVersion: v1
 kind: Service
 metadata:
@@ -155,9 +157,9 @@ spec:
       port: 3000
       targetPort: 3000
 ---
-# ------------------------------
+# --------------------------------------
 # Route Grafana (OpenShift)
-# ------------------------------
+# --------------------------------------
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
