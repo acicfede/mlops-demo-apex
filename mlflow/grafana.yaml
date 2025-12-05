@@ -17,7 +17,7 @@ data:
         updateIntervalSeconds: 10
         options:
           path: /etc/grafana/provisioning/dashboards/mlflow
-
+---
 # --------------------------------------
 # PVC for Grafana
 # --------------------------------------
