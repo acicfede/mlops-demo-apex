@@ -1,0 +1,177 @@
+# ------------------------------
+# PVC per Grafana
+# ------------------------------
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-data
+  namespace: mlflow
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: mcp-pf-fs-storageclass
+---
+# ------------------------------
+# ConfigMap Datasource MLflow PostgreSQL
+# ------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ds-mlflow
+  namespace: mlflow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  mlflow.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: MLflow-PostgreSQL
+        type: postgres
+        access: proxy
+        url: postgresql.mlflow.svc.cluster.local:5432
+        user: admin
+        secureJsonData:
+          password: admin
+        database: db
+        jsonData:
+          sslmode: disable
+          postgresVersion: 13
+        isDefault: false
+        editable: true
+---
+# ------------------------------
+# ConfigMap Datasource Prometheus
+# ------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ds-prometheus
+  namespace: mlflow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://prometheus-operated:9090
+        isDefault: true
+        editable: true
+---
+# ------------------------------
+# ConfigMap Datasource Loki
+# ------------------------------
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-ds-loki
+  namespace: mlflow
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  loki.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Loki
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        editable: true
+---
+# ------------------------------
+# Deployment Grafana
+# ------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: mlflow
+  labels:
+    app: grafana
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: docker.io/grafana/grafana:9.5.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+              protocol: TCP
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
+          volumeMounts:
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
+            - name: grafana-ds-mlflow
+              mountPath: /etc/grafana/provisioning/datasources/mlflow
+            - name: grafana-ds-prometheus
+              mountPath: /etc/grafana/provisioning/datasources/prometheus
+            - name: grafana-ds-loki
+              mountPath: /etc/grafana/provisioning/datasources/loki
+      volumes:
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-data
+        - name: grafana-ds-mlflow
+          configMap:
+            name: grafana-ds-mlflow
+        - name: grafana-ds-prometheus
+          configMap:
+            name: grafana-ds-prometheus
+        - name: grafana-ds-loki
+          configMap:
+            name: grafana-ds-loki
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+---
+# ------------------------------
+# Service Grafana
+# ------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: mlflow
+spec:
+  selector:
+    app: grafana
+  ports:
+    - name: http
+      protocol: TCP
+      port: 3000
+      targetPort: 3000
+---
+# ------------------------------
+# Route Grafana (OpenShift)
+# ------------------------------
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: grafana
+  namespace: mlflow
+spec:
+  to:
+    kind: Service
+    name: grafana
+  port:
+    targetPort: http
+  tls:
+    termination: edge
