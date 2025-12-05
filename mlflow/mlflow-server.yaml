@@ -29,49 +29,6 @@ spec:
       restartPolicy: Always
       terminationGracePeriodSeconds: 30
       containers:
-        - name: oauth-proxy
-          image: registry.redhat.io/openshift4/ose-oauth-proxy:v4.12.0
-          imagePullPolicy: IfNotPresent
-          ports:
-            - name: https
-              containerPort: 8443
-              protocol: TCP
-          resources:
-            limits:
-              cpu: 100m
-              memory: 256Mi
-            requests:
-              cpu: 100m
-              memory: 256Mi
-          volumeMounts:
-            - name: proxy-tls
-              mountPath: /etc/tls/private
-          livenessProbe:
-            httpGet:
-              path: /oauth/healthz
-              port: 8443
-              scheme: HTTPS
-            initialDelaySeconds: 30
-            periodSeconds: 5
-          readinessProbe:
-            httpGet:
-              path: /oauth/healthz
-              port: 8443
-              scheme: HTTPS
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          args:
-            - "--https-address=:8443"
-            - "--provider=openshift"
-            - "--openshift-service-account=mlflow"
-            - "--upstream=http://localhost:5000"
-            - "--tls-cert=/etc/tls/private/tls.crt"
-            - "--tls-key=/etc/tls/private/tls.key"
-            - "--cookie-secret=SECRET"
-            - "--openshift-delegate-urls={\"/\": {\"group\":\"route.openshift.io\", \"resource\":\"routes\", \"verb\": \"get\", \"namespace\":\"rosa\"}}"
-            - "--openshift-sar={\"verb\":\"get\",\"resource\":\"routes\",\"resourceAPIGroup\":\"route.openshift.io\",\"namespace\":\"mlflow\"}"
-            - "--skip-auth-regex=^/api/2\\.0/.*$"
-
         - name: mlflow
           image: docker.io/hemaveeradhi/mlflow:amd64
           imagePullPolicy: IfNotPresent
@@ -111,17 +68,15 @@ kind: Service
 metadata:
   name: mlflow-server
   namespace: mlflow
-  annotations:
-    service.alpha.openshift.io/serving-cert-secret-name: proxy-tls
 spec:
   type: ClusterIP
   selector:
     name: mlflow-server
   ports:
-    - name: https
+    - name: http
       protocol: TCP
-      port: 8443
-      targetPort: 8443
+      port: 5000
+      targetPort: 5000
 ---
 apiVersion: route.openshift.io/v1
 kind: Route
@@ -132,7 +87,8 @@ spec:
   to:
     kind: Service
     name: mlflow-server
-    weight: 100
+  port:
+    targetPort: http
   tls:
-    termination: reencrypt
-  wildcardPolicy: None
+    termination: edge 
+
