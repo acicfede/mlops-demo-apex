@@ -1,5 +1,5 @@
 # ---------------------------------------------------------
-# ConfigMap: Thanos Prometheus datasource (CORRETTO)
+# ConfigMap: Thanos Prometheus datasource (TOKEN HARD-CODED)
 # ---------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
@@ -16,16 +16,18 @@ data:
         url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
         isDefault: true
         jsonData:
-          httpMethod: GET
           tlsSkipVerify: true
+          httpMethod: GET
           timeInterval: "30s"
           httpHeaderName1: Authorization
         secureJsonData:
           httpHeaderValue1: "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NDk0NTk4NiwiaWF0IjoxNzY0OTQyMzg2LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiI2MWUwN2Q4ZS1lZmUxLTRmYzctYWFlNS03N2IxYWIyNzk0MjQiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1tb25pdG9yaW5nIiwic2VydmljZWFjY291bnQiOnsibmFtZSI6ImdyYWZhbmEtdGhhbm9zIiwidWlkIjoiNGE3ODhjM2EtMzZhYi00YjRkLTg5NTItM2Q4Yjg0NmE5ZDkyIn19LCJuYmYiOjE3NjQ5NDIzODYsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtbW9uaXRvcmluZzpncmFmYW5hLXRoYW5vcyJ9.gQaWA690jZP_9PU7e46nUiTY-og-thyVBo3xCkZ1lja-tSBScu6CNMWlkXlBlgKA6YfnGJgYnnxMqQbtNYE1TeqcOO0vrzgr0vQhDnzdXcWqRCTslBS6VGKizk6HkSW4OWqXK7cJDl_P1YJmxRAznhk8JS82EK99DQ3O8hLTeeOa7aH9F7s_1HqJ7WYZKhkYQ4PUdobWw4sS-dNtet6_45_x2si8IQuFXljlkJIPmcHwsysT4szTWN3nDstg7loLkvnsGXXY0ZT42AL7SEyS47vfj8LYlPtU8zaF9yJlDrYWf6-FBWi5LnpdxGTDMkJ0kH5qH5pdDy2VL9oPaP5xl9WQ0esVOR42Ghcr3Z291pQQFRjnFMHI6iDjpB4yc8-DA2tPEjjRahyaMnLmuFYU51VdVOTa29F53rPIPtY8np4AfB9v9bp1gCFRmquC6CrMU13_TL5JpNzrpVddd5oatE1_gq7bA_N34CUKHbXPxf4fEyQnZTJZpDBFDl_GiC65Y1Kwk5LkIY1YLIDJ4g3wvUWbV6fuDAUrhy8ypaWPYb0lDuPMgaY3jWoKgG4NrhUx9ymEiw3dO_12Waj1JrZyXw9LCEcbQzYArTGUworCzlNMjnvZKlsXhF_RTbQ1VAcLfYrTIDUGUh6VIdyS3Wh6YhW0ry1uxEr4wvmuNrNRhP8"
+
+
+# ---------------------------------------------------------
+# ConfigMap: PostgreSQL MLflow datasource
+# ---------------------------------------------------------
 ---
-# ---------------------------------------------------------
-# ConfigMap: MLflow Postgres datasource
-# ---------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -40,15 +42,18 @@ data:
         access: proxy
         url: postgresql.mlflow.svc.cluster.local:5432
         user: admin
+        database: db
         secureJsonData:
           password: admin
         jsonData:
           sslmode: disable
-        database: db
+        isDefault: false
+
+
+# ---------------------------------------------------------
+# ConfigMap: Dashboard Providers
+# ---------------------------------------------------------
 ---
-# ---------------------------------------------------------
-# ConfigMap: Dashboard Providers (MLflow + vLLM)
-# ---------------------------------------------------------
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -69,10 +74,12 @@ data:
         type: file
         options:
           path: /etc/grafana/provisioning/dashboards/vllm
+
+
+# ---------------------------------------------------------
+# Persistent Volume Claim
+# ---------------------------------------------------------
 ---
-# ---------------------------------------------------------
-# PVC per Grafana
-# ---------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -85,10 +92,12 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: mcp-pf-fs-storageclass
+
+
+# ---------------------------------------------------------
+# Deployment Grafana (VERSIONE DEFINITIVA)
+# ---------------------------------------------------------
 ---
-# ---------------------------------------------------------
-# Deployment Grafana (PULITO + CORRETTO)
-# ---------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -107,7 +116,6 @@ spec:
       containers:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
-
           ports:
             - containerPort: 3000
 
@@ -118,30 +126,29 @@ spec:
               value: admin
 
           volumeMounts:
-            # data
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
-            # datasources
-            - name: grafana-ds-mlflow
-              mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
-              subPath: mlflow.yaml
-
+            # Datasources
             - name: grafana-ds-prometheus
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
 
-            # dashboard providers
+            - name: grafana-ds-mlflow
+              mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
+              subPath: mlflow.yaml
+
+            # Dashboard Providers
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
-            # mlflow dashboard
+            # MLflow Dashboard
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
 
-            # vllm dashboard
+            # vLLM Dashboard
             - name: grafana-dashboard-vllm
               mountPath: /etc/grafana/provisioning/dashboards/vllm/vllm-dashboard.json
               subPath: vllm-dashboard.json
@@ -151,13 +158,13 @@ spec:
           persistentVolumeClaim:
             claimName: grafana-data
 
-        - name: grafana-ds-mlflow
-          configMap:
-            name: grafana-ds-mlflow
-
         - name: grafana-ds-prometheus
           configMap:
             name: grafana-ds-prometheus
+
+        - name: grafana-ds-mlflow
+          configMap:
+            name: grafana-ds-mlflow
 
         - name: grafana-dashboard-providers
           configMap:
@@ -170,10 +177,12 @@ spec:
         - name: grafana-dashboard-vllm
           configMap:
             name: grafana-dashboard-vllm
----
+
+
 # ---------------------------------------------------------
 # Service Grafana
 # ---------------------------------------------------------
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -186,10 +195,12 @@ spec:
     - name: http
       port: 3000
       targetPort: 3000
----
+
+
 # ---------------------------------------------------------
 # Route Grafana
 # ---------------------------------------------------------
+---
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -203,3 +214,4 @@ spec:
     targetPort: http
   tls:
     termination: edge
+
