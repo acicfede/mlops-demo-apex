@@ -23,7 +23,6 @@ metadata:
   name: grafana-ds-mlflow
   namespace: mlflow
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
 data:
   mlflow.yaml: |
     apiVersion: 1
@@ -51,7 +50,6 @@ metadata:
   name: grafana-ds-prometheus
   namespace: mlflow
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
 data:
   prometheus.yaml: |
     apiVersion: 1
@@ -72,7 +70,6 @@ metadata:
   name: grafana-ds-loki
   namespace: mlflow
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
 data:
   loki.yaml: |
     apiVersion: 1
@@ -94,7 +91,6 @@ metadata:
   labels:
     app: grafana
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: 1
   selector:
