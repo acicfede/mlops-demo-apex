@@ -1,18 +1,21 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-prometheus-datasource
+  name: grafana-ds-prometheus
   namespace: monitoring-tools
 data:
-  prometheus-datasource.yaml: |
+  prometheus.yaml: |
     apiVersion: 1
     datasources:
-      - name: Prometheus
+      - name: Thanos-Monitoring
         type: prometheus
         access: proxy
         url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
         isDefault: true
         jsonData:
           tlsSkipVerify: true
+          httpMethod: GET
+          httpHeaderName1: Authorization
+          timeInterval: "30s"
         secureJsonData:
-          httpHeaderValue1: ${PROM_TOKEN}
+          httpHeaderValue1: "Bearer ${PROM_TOKEN}"
