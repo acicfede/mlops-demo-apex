@@ -2,16 +2,23 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: grafana-token-refresher-role
+  namespace: monitoring-tools
 rules:
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get", "update", "patch"]
+
+  # 👇 PERMESSO NECESSARIO PER GENERARE TOKEN DI SERVICE ACCOUNT
+  - apiGroups: [""]
+    resources: ["serviceaccounts/token"]
+    verbs: ["create"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: grafana-token-refresher-rb
+  namespace: monitoring-tools
 subjects:
   - kind: ServiceAccount
     name: grafana-token-refresher
