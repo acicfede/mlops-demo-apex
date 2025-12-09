@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - grafana.yaml
-  - grafana-ds-prometheus.yaml
+  - datasource-prometheus.yaml
   - grafana-ds-mlflow.yaml
   - grafana-dashboard-providers.yaml
   - secret-prometheus-token.yaml
