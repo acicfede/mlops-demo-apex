@@ -1,28 +1,6 @@
 # ---------------------------------------------------------
 # ConfigMap: Thanos Prometheus datasource (TOKEN HARD-CODED)
 # ---------------------------------------------------------
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-ds-prometheus
-  namespace: monitoring-tools
-data:
-  prometheus.yaml: |
-    apiVersion: 1
-    datasources:
-      - name: Thanos-Monitoring
-        type: prometheus
-        access: proxy
-        url: https://thanos-querier.openshift-monitoring.svc.cluster.local:9091
-        isDefault: true
-        jsonData:
-          tlsSkipVerify: true
-          httpMethod: GET
-          httpHeaderName1: Authorization
-          timeInterval: "30s"
-        secureJsonData:
-          httpHeaderValue1: "Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IlJiUGo3Rl9oaFpFYmdnZXE0ZkU2bEFLbmJUME5FRHFIY0V3bEFVTmFEODgifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc2NTI4MDY0NywiaWF0IjoxNzY1Mjc3MDQ3LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJqdGkiOiI5Y2RiMzRhOC00ZDI5LTQ0NDYtOTM4Mi1jZTVhMWVlODUyNjciLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im1vbml0b3JpbmctdG9vbHMiLCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoiZ3JhZmFuYS1zYSIsInVpZCI6IjljZjljOGY2LTNiNTAtNDljYS04MmYyLTNlYTMwYTIyMmNhOSJ9fSwibmJmIjoxNzY1Mjc3MDQ3LCJzdWIiOiJzeXN0ZW06c2VydmljZWFjY291bnQ6bW9uaXRvcmluZy10b29sczpncmFmYW5hLXNhIn0.IhPWxGOgvIY5C_ovH-kpogx1UQtw88bb1IVwLoXnAsimlJyMJn_7nOVHnhcxSAablw_ZQdupUc9LzQcD3q2DdRtqmBcU21FyAUp0N0sKjNhzh6AthIFoQQ1kr1Qdcf9C3Wz9IwTW5EVd9VA1Zw9tS1vR0y7VMZrrTo2rWQo4mwtN5RoNf9Fw0zUibJTOuP8J3VS0uF0QhsZBLueoKl1fzA_LV8zD-wpqPbm2KYIG30VGEnXhPKQC0BnO82DHr7NxZ8u5n_FbOQmb_NSzoR40gV4efA0zwWRMhbexS4YNu4iKPKwm3VxmxAhuJoSMkzGga1y8K1hPfDgAVpJd5qYRbC2B9ZwDBGuUwJGCDLp6RjcsjyiuEoeWOrFG7OfOK_GZyvE3kDU_zoj6BkqpmX5R1Lj0wNrsLhRznoJ3etTgDvF8oVFUjR5UzqmbCWsfF6FacuwzmyXK9c9vzSyYq2jOTTNDT_8i7LYbM4-4S3smf_QzSjB6YlJi8YiER2gjKe91wmiPkMHDbMdPqL-G2-0hWbQSxwck6SH-sk8JqtDYMFfyKJxglfBDy4uSyhEEx2-qTOlFCijutX3dbKkbGhcKX8IXXXYdti7HT8d1B_-PDOusbqIaBdIwZ62HhXVcMBaV4KTZmR22yqwP9PgscP3-_S9Ur9P5QQROEqFKZoPXuE0"
----
 # ---------------------------------------------------------
 # ConfigMap: PostgreSQL MLflow datasource
 # ---------------------------------------------------------
