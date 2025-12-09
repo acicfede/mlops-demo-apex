@@ -5,24 +5,7 @@ namespace: monitoring-tools
 
 resources:
   - namespace.yaml
-
-  # Grafana
   - grafana/
-
-  # OpenTelemetry Collector
   - open-telemetry/
-
-  # MLflow
   - mlflow/
 
-configMapGenerator:
-  - name: grafana-dashboard-mlflow
-    files:
-      - grafana/dashboards/mlflow-training-dashboard.json
-
-  - name: grafana-dashboard-vllm
-    files:
-      - grafana/dashboards/vllm-dashboard.json
-
-generatorOptions:
-  disableNameSuffixHash: true
