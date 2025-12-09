@@ -18,3 +18,9 @@ data:
         type: file
         options:
           path: /etc/grafana/provisioning/dashboards/vllm
+
+      - name: otel-ml
+        folder: OpenTelemetry ML Metrics
+        type: file
+        options:
+          path: /etc/grafana/provisioning/dashboards/otel-ml
