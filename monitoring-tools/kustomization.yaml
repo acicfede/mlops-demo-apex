@@ -4,14 +4,7 @@ kind: Kustomization
 namespace: monitoring-tools
 
 resources:
-  - grafana/grafana.yaml
-  - grafana/grafana-ds-prometheus.yaml
-  - grafana/grafana-ds-mlflow.yaml
-  - grafana/grafana-dashboard-providers.yaml
-  - grafana/secret-prometheus-token.yaml
-  - grafana/sa-token-refresher.yaml
-  - grafana/rbac-token-refresher.yaml
-  - grafana/cronjob-token-refresher.yaml
+  - mlflow/
   - namespace.yaml
   - application.yaml
 
