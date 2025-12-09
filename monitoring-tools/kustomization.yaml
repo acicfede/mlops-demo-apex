@@ -6,7 +6,6 @@ namespace: monitoring-tools
 resources:
   - mlflow/
   - namespace.yaml
-  - application.yaml
 
 configMapGenerator:
   - name: grafana-dashboard-mlflow
