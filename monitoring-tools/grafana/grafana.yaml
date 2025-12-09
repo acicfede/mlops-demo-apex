@@ -1,56 +1,5 @@
 # ---------------------------------------------------------
-# ConfigMap: Thanos Prometheus datasource (TOKEN HARD-CODED)
-# ---------------------------------------------------------
-# ---------------------------------------------------------
-# ConfigMap: PostgreSQL MLflow datasource
-# ---------------------------------------------------------
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-ds-mlflow
-  namespace: monitoring-tools
-data:
-  mlflow.yaml: |
-    apiVersion: 1
-    datasources:
-      - name: MLflow-PostgreSQL
-        type: postgres
-        access: proxy
-        url: postgresql.monitoring-tools.svc.cluster.local:5432
-        user: admin
-        database: db
-        secureJsonData:
-          password: admin
-        jsonData:
-          sslmode: disable
-        isDefault: false
----
-# ---------------------------------------------------------
-# ConfigMap: Dashboard Providers
-# ---------------------------------------------------------
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboard-providers
-  namespace: monitoring-tools
-data:
-  dashboards.yaml: |
-    apiVersion: 1
-    providers:
-      - name: mlflow
-        folder: MLflow
-        type: file
-        options:
-          path: /etc/grafana/provisioning/dashboards/mlflow
-
-      - name: vllm
-        folder: vLLM
-        type: file
-        options:
-          path: /etc/grafana/provisioning/dashboards/vllm
----
-# ---------------------------------------------------------
-# PVC per Grafana
+# PVC Grafana
 # ---------------------------------------------------------
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -66,7 +15,7 @@ spec:
   storageClassName: mcp-pf-fs-storageclass
 ---
 # ---------------------------------------------------------
-# Deployment Grafana
+# Deployment Grafana (AGGIORNATO)
 # ---------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -89,12 +38,19 @@ spec:
           ports:
             - containerPort: 3000
 
+          # 👇 Variabili d'ambiente standard
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
 
+          # 👇 AGGIUNTA: importa PROM_TOKEN dal Secret aggiornato dal CronJob
+          envFrom:
+            - secretRef:
+                name: grafana-prometheus-token
+
+          # 👇 Mount delle ConfigMap e delle dashboard
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
