@@ -4,18 +4,25 @@ kind: Kustomization
 namespace: monitoring-tools
 
 resources:
-  - mlflow/
   - namespace.yaml
+
+  # Grafana
+  - grafana/
+
+  # OpenTelemetry Collector
+  - open-telemetry/
+
+  # MLflow
+  - mlflow/
 
 configMapGenerator:
   - name: grafana-dashboard-mlflow
     files:
-      - dashboards/mlflow-training-dashboard.json
+      - grafana/dashboards/mlflow-training-dashboard.json
 
   - name: grafana-dashboard-vllm
     files:
-      - dashboards/vllm-dashboard.json
+      - grafana/dashboards/vllm-dashboard.json
 
 generatorOptions:
   disableNameSuffixHash: true
-
