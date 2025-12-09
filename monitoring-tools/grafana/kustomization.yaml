@@ -9,6 +9,7 @@ resources:
   - secret-prometheus-token.yaml
   - sa-token-refresher.yaml
   - rbac-token-refresher.yaml
+  - rbac-grafana-prometheus.yaml
   - cronjob-token-refresher.yaml
 
 configMapGenerator:
