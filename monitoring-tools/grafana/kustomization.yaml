@@ -3,7 +3,7 @@ kind: Kustomization
 
 resources:
   - grafana.yaml
-  - grafana-sa.yaml
+  - grafana-serviceaccount.yaml
   - datasource-prometheus.yaml
   - grafana-ds-mlflow.yaml
   - grafana-dashboard-providers.yaml
