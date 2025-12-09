@@ -3,24 +3,19 @@ kind: Kustomization
 
 namespace: monitoring-tools
 
+# Tutte le risorse YAML sono nella cartella grafana/
 resources:
-  - grafana.yaml
-  - grafana-ds-prometheus.yaml
-  - grafana-ds-mlflow.yaml        # 👈 AGGIUNGI QUESTA
-  - grafana-dashboard-providers.yaml  # 👈 AGGIUNGI QUESTA
-  - secret-prometheus-token.yaml
-  - sa-token-refresher.yaml
-  - rbac-token-refresher.yaml
-  - cronjob-token-refresher.yaml
+  - grafana/
 
 configMapGenerator:
   - name: grafana-dashboard-mlflow
     files:
-      - dashboards/mlflow-training-dashboard.json
+      - grafana/dashboards/mlflow-training-dashboard.json
 
   - name: grafana-dashboard-vllm
     files:
-      - dashboards/vllm-dashboard.json
+      - grafana/dashboards/vllm-dashboard.json
 
 generatorOptions:
   disableNameSuffixHash: true
+
