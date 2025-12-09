@@ -4,8 +4,17 @@ kind: Kustomization
 namespace: monitoring-tools
 
 resources:
-  - grafana/
-  - mlflow/
+  # Manifest principali nella cartella grafana/
+  - grafana/grafana.yaml
+  - grafana/grafana-ds-prometheus.yaml
+  - grafana/grafana-ds-mlflow.yaml
+  - grafana/grafana-dashboard-providers.yaml
+  - grafana/secret-prometheus-token.yaml
+  - grafana/sa-token-refresher.yaml
+  - grafana/rbac-token-refresher.yaml
+  - grafana/cronjob-token-refresher.yaml
+
+  # Altri manifest del progetto
   - namespace.yaml
   - application.yaml
 
