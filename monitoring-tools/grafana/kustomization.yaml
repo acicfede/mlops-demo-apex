@@ -5,7 +5,9 @@ namespace: monitoring-tools
 
 resources:
   - grafana.yaml
-  - datasource-prometheus.yaml
+  - grafana-ds-prometheus.yaml
+  - grafana-ds-mlflow.yaml        # 👈 AGGIUNGI QUESTA
+  - grafana-dashboard-providers.yaml  # 👈 AGGIUNGI QUESTA
   - secret-prometheus-token.yaml
   - sa-token-refresher.yaml
   - rbac-token-refresher.yaml
