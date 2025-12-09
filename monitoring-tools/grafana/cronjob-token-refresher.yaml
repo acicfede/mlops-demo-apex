@@ -2,23 +2,23 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: grafana-token-refresher
+  namespace: monitoring-tools
 spec:
-  schedule: "*/55 * * * *"
+  schedule: "*/30 * * * *"
   jobTemplate:
     spec:
       template:
         spec:
           serviceAccountName: grafana-token-refresher
-          restartPolicy: OnFailure
           containers:
-            - name: refresher
-              image: registry.redhat.io/openshift4/ose-cli
+            - name: refresh-token
+              image: quay.io/openshift/origin-cli:latest
               command:
-                - /bin/bash
+                - /bin/sh
                 - -c
                 - |
-                  echo "Generating new token..."
                   TOKEN=$(oc create token grafana-sa -n monitoring-tools)
-                  oc -n monitoring-tools patch secret grafana-prometheus-token \
-                    --type merge \
-                    -p "{\"stringData\": {\"PROM_TOKEN\": \"$TOKEN\"}}"
+                  oc patch secret prometheus-token -n monitoring-tools \
+                    --type=merge -p "{\"stringData\":{\"PROM_TOKEN\":\"$TOKEN\"}}"
+          restartPolicy: OnFailure
+
