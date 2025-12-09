@@ -15,7 +15,7 @@ spec:
   storageClassName: mcp-pf-fs-storageclass
 ---
 # ---------------------------------------------------------
-# Deployment Grafana (AGGIORNATO CORRETTO)
+# Deployment Grafana
 # ---------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -32,7 +32,8 @@ spec:
       labels:
         app: grafana
     spec:
-      serviceAccountName: grafana-sa     # ← ASSICURATI CHE SIA QUESTO SA
+      serviceAccountName: grafana-sa
+
       containers:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
@@ -44,18 +45,17 @@ spec:
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
-
-            # 👇 IL TOKEN VIENE CARICATO DAL SECRET CORRETTO
-            - name: PROM_TOKEN
+            - name: PROM_TOKEN        # Automatic update from secret
               valueFrom:
                 secretKeyRef:
-                  name: prometheus-token   # ← NOME CORRETTO DEL SECRET
+                  name: prometheus-token
                   key: PROM_TOKEN
 
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
+            # Datasources
             - name: grafana-ds-prometheus
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
@@ -64,17 +64,25 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
 
+            # Dashboard providers
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
+            # MLflow dashboard
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
 
+            # vLLM dashboard
             - name: grafana-dashboard-vllm
               mountPath: /etc/grafana/provisioning/dashboards/vllm/vllm-dashboard.json
               subPath: vllm-dashboard.json
+
+            # NEW: OpenTelemetry ML dashboard
+            - name: grafana-dashboard-otel-ml
+              mountPath: /etc/grafana/provisioning/dashboards/otel-ml/otel-ml-training-dashboard.json
+              subPath: otel-ml-training-dashboard.json
 
       volumes:
         - name: grafana-storage
@@ -100,6 +108,10 @@ spec:
         - name: grafana-dashboard-vllm
           configMap:
             name: grafana-dashboard-vllm
+
+        - name: grafana-dashboard-otel-ml
+          configMap:
+            name: grafana-dashboard-otel-ml
 ---
 # ---------------------------------------------------------
 # Service Grafana
@@ -133,5 +145,3 @@ spec:
     targetPort: http
   tls:
     termination: edge
-
-
