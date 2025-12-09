@@ -15,7 +15,7 @@ spec:
   storageClassName: mcp-pf-fs-storageclass
 ---
 # ---------------------------------------------------------
-# Deployment Grafana (AGGIORNATO)
+# Deployment Grafana (AGGIORNATO CORRETTO)
 # ---------------------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
@@ -32,45 +32,50 @@ spec:
       labels:
         app: grafana
     spec:
+      serviceAccountName: grafana-sa        # ← ASSICURIAMO CHE USA L'SA CORRETTO
       containers:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
           ports:
             - containerPort: 3000
 
-          # 👇 Variabili d'ambiente standard
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
+            # Variabile token per Prometheus (lettura dal Secret aggiornato)
+            - name: PROM_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: prometheus-token     # ← NOME DEL SECRET CORRETTO
+                  key: PROM_TOKEN
 
-          # 👇 AGGIUNTA: importa PROM_TOKEN dal Secret aggiornato dal CronJob
-          envFrom:
-            - secretRef:
-                name: grafana-prometheus-token
-
-          # 👇 Mount delle ConfigMap e delle dashboard
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
+            # Datasource Prometheus
             - name: grafana-ds-prometheus
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
 
+            # Datasource MLflow
             - name: grafana-ds-mlflow
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
 
+            # Dashboard providers
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
+            # Dashboard MLflow
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
 
+            # Dashboard vLLM
             - name: grafana-dashboard-vllm
               mountPath: /etc/grafana/provisioning/dashboards/vllm/vllm-dashboard.json
               subPath: vllm-dashboard.json
@@ -132,3 +137,4 @@ spec:
     targetPort: http
   tls:
     termination: edge
+
