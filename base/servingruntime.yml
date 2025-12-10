@@ -4,8 +4,8 @@ metadata:
   annotations:
     opendatahub.io/apiProtocol: REST
     opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
-    opendatahub.io/template-display-name: vLLM ServingRuntime for KServe
-    opendatahub.io/template-name: vllm-runtime
+    opendatahub.io/template-display-name: vLLM NVIDIA GPU ServingRuntime for KServe
+    opendatahub.io/template-name: vllm-cuda-runtime
     openshift.io/display-name: llama32-1b
   name: llama32-1b
   labels:
@@ -31,7 +31,7 @@ spec:
       env:
         - name: HF_HOME
           value: /tmp/hf_home
-      image: 'quay.io/modh/vllm@sha256:0d55419f3d168fd80868a36ac89815dded9e063937a8409b7edf3529771383f3'
+      image: registry.redhat.io/rhoai/odh-vllm-cuda-rhel9@sha256:fb84fbf103bf450ef5b060fc5f21a9cf16b166dba207a3c50aa91bccd919d604
       name: kserve-container
       ports:
         - containerPort: 8080
