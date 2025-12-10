@@ -1,53 +1,58 @@
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
+  name: llama32-1b
+  namespace: ml
   annotations:
     opendatahub.io/apiProtocol: REST
     opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
     opendatahub.io/template-display-name: vLLM NVIDIA GPU ServingRuntime for KServe
     opendatahub.io/template-name: vllm-cuda-runtime
     openshift.io/display-name: llama32-1b
-  name: llama32-1b
   labels:
-    opendatahub.io/dashboard: 'true'
+    opendatahub.io/dashboard: "true"
+
 spec:
   annotations:
     prometheus.io/path: /metrics
-    prometheus.io/port: '8080'
+    prometheus.io/port: "8080"
+
   containers:
-    - args:
-        - '--port=8080'
-        - '--model=/mnt/models'
-        - '--served-model-name={{.Name}}'
-        - '--enable-auto-tool-choice'
-        - '--tool-call-parser'
-        - llama3_json
-        - '--chat-template'
-        - /app/data/template/tool_chat_template_llama3.2_json.jinja
+    - name: kserve-container
+      image: registry.redhat.io/rhoai/odh-vllm-cuda-rhel9@sha256:fb84fbf103bf450ef5b060fc5f21a9cf16b166dba207a3c50aa91bccd919d604
       command:
         - python
-        - '-m'
+        - -m
         - vllm.entrypoints.openai.api_server
+      args:
+        - --port=8080
+        - --model=/mnt/models
+        - --served-model-name={{.Name}}
+        - --enable-auto-tool-choice
+        - --tool-call-parser
+        - llama3_json
+        - --chat-template
+        - /app/data/template/tool_chat_template_llama3.2_json.jinja
       env:
         - name: HF_HOME
           value: /tmp/hf_home
-      image: registry.redhat.io/rhoai/odh-vllm-cuda-rhel9@sha256:fb84fbf103bf450ef5b060fc5f21a9cf16b166dba207a3c50aa91bccd919d604
-      name: kserve-container
       ports:
         - containerPort: 8080
-          protocol: TCP
       volumeMounts:
-        - mountPath: /dev/shm
-          name: shm
+        - name: shm
+          mountPath: /dev/shm
+
   multiModel: false
+
   supportedModelFormats:
-    - autoSelect: true
-      name: vLLM
+    - name: vLLM
+      autoSelect: true
+
   volumes:
-    - emptyDir:
+    - name: shm
+      emptyDir:
         medium: Memory
         sizeLimit: 2Gi
-      name: shm
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
@@ -58,7 +63,7 @@ metadata:
     openshift.io/display-name: llama-32-3b-instruct
     serving.kserve.io/deploymentMode: RawDeployment
   labels:
-    opendatahub.io/dashboard: 'true'
+    opendatahub.io/dashboard: "true"
 
 spec:
   predictor:
@@ -66,7 +71,7 @@ spec:
     minReplicas: 1
     maxReplicas: 1
     model:
-      name: ''
+      name: ""
       runtime: llama32-1b
       storageUri: oci://quay.io/redhat-ai-services/modelcar-catalog:llama-3.2-3b-instruct
       modelFormat:
@@ -79,14 +84,15 @@ spec:
         - --tool_call_parser=llama3_json
       resources:
         requests:
-          cpu: '4'
+          cpu: "4"
           memory: 8Gi
-          nvidia.com/gpu: '1'
+          nvidia.com/gpu: "1"
         limits:
-          cpu: '8'
+          cpu: "8"
           memory: 10Gi
-          nvidia.com/gpu: '1'
+          nvidia.com/gpu: "1"
       container:
         securityContext:
           runAsUser: 0
           runAsGroup: 0
+
