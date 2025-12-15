@@ -6,13 +6,14 @@ metadata:
 spec:
   project: ml-redis
   source:
-    repoURL: 'https://github.com/acicfede/mlops-demo-apex.git'
+    repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
     path: redis-test
   destination:
-    server: 'https://kubernetes.default.svc'
-    namespace: ml
+    server: https://kubernetes.default.svc
+    namespace: redisns
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+
