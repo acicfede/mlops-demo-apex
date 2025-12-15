@@ -179,8 +179,8 @@ spec:
           secret:
             secretName: ml-workbench-tls
             defaultMode: 420
-          ---
-          apiVersion: batch/v1
+---
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: clone-pipeline-skeleton-2
