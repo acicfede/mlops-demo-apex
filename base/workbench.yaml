@@ -1,0 +1,229 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: workbench-pvc
+  namespace: ml
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 8Gi
+  storageClassName: nfs-csi
+---
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: workbench
+  namespace: ml
+  labels:
+    app: workbench
+  annotations:
+    notebooks.opendatahub.io/inject-oauth: 'true'
+    opendatahub.io/image-display-name: Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12
+    notebooks.opendatahub.io/oauth-logout-url: 'https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench'
+    notebooks.opendatahub.io/last-image-selection: 'jupyter-pytorch-llmcompressor:2025.2'
+    notebooks.opendatahub.io/last-size-selection: ''
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: be38cca
+    opendatahub.io/hardware-profile-namespace: ml
+    opendatahub.io/username: admin
+    openshift.io/description: Complete workbench cloned from ml-workbench
+    openshift.io/display-name: nuovo-workbench
+spec:
+  template:
+    spec:
+      serviceAccountName: ml-workbench
+      enableServiceLinks: false
+      containers:
+        - name: workbench
+          image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/jupyter-pytorch-llmcompressor:2025.2
+          imagePullPolicy: Always
+          workingDir: /opt/app-root/src
+          env:
+            - name: NOTEBOOK_ARGS
+              value: |
+                --ServerApp.port=8888
+                --ServerApp.token=''
+                --ServerApp.password=''
+                --ServerApp.base_url=/notebook/ml/nuovo-workbench
+                --ServerApp.quit_button=False
+            - name: PIP_CERT
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: REQUESTS_CA_BUNDLE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: SSL_CERT_FILE
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: PIPELINES_SSL_SA_CERTS
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+            - name: GIT_SSL_CAINFO
+              value: /etc/pki/tls/custom-certs/ca-bundle.crt
+          ports:
+            - containerPort: 8888
+              name: notebook-port
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '2'
+              memory: 8Gi
+            requests:
+              cpu: '1'
+              memory: 8Gi
+          volumeMounts:
+            - mountPath: /opt/app-root/src
+              name: workbench-storage
+            - mountPath: /dev/shm
+              name: shm
+            - mountPath: /etc/pki/tls/custom-certs/ca-bundle.crt
+              name: trusted-ca
+              readOnly: true
+              subPath: ca-bundle.crt
+            - mountPath: /opt/app-root/pipeline-runtimes/
+              name: runtime-images
+            - mountPath: /opt/app-root/runtimes
+              name: elyra-dsp-details
+        - name: oauth-proxy
+          image: registry.redhat.io/openshift4/ose-oauth-proxy@sha256:4f8d66597feeb32bb18699326029f9a71a5aca4a57679d636b876377c2e95695
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: 100m
+              memory: 64Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          readinessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /oauth/healthz
+              port: oauth-proxy
+              scheme: HTTPS
+            initialDelaySeconds: 30
+            periodSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+            timeoutSeconds: 1
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8443
+              name: oauth-proxy
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /etc/oauth/client
+              name: oauth-client
+            - mountPath: /etc/oauth/config
+              name: oauth-config
+            - mountPath: /etc/tls/private
+              name: tls-certificates
+          args:
+            - '--provider=openshift'
+            - '--https-address=:8443'
+            - '--http-address='
+            - '--openshift-service-account=ml-workbench'
+            - '--cookie-secret-file=/etc/oauth/config/cookie_secret'
+            - '--cookie-expire=24h0m0s'
+            - '--tls-cert=/etc/tls/private/tls.crt'
+            - '--tls-key=/etc/tls/private/tls.key'
+            - '--upstream=http://localhost:8888'
+            - '--upstream-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt'
+            - '--email-domain=*'
+            - '--skip-provider-button'
+            - '--client-id=nuovo-workbench-ml-oauth-client'
+            - '--client-secret-file=/etc/oauth/client/secret'
+            - '--scope=user:info user:check-access'
+            - '--openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"workbench","namespace":"$(NAMESPACE)"}'
+            - '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=workbench'
+      volumes:
+        - name: workbench-storage
+          persistentVolumeClaim:
+            claimName: workbench-pvc
+        - name: shm
+          emptyDir:
+            medium: Memory
+        - name: trusted-ca
+          configMap:
+            name: workbench-trusted-ca-bundle
+            items:
+              - key: ca-bundle.crt
+                path: ca-bundle.crt
+            optional: true
+        - name: runtime-images
+          configMap:
+            name: pipeline-runtime-images
+            optional: true
+        - name: elyra-dsp-details
+          secret:
+            secretName: ds-pipeline-config
+            optional: true
+        - name: oauth-config
+          secret:
+            secretName: ml-workbench-oauth-config
+            defaultMode: 420
+        - name: oauth-client
+          secret:
+            secretName: ml-workbench-oauth-client
+            defaultMode: 420
+        - name: tls-certificates
+          secret:
+            secretName: ml-workbench-tls
+            defaultMode: 420
+          ---
+          apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clone-pipeline-skeleton-2
+  namespace: ml
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: default
+      containers:
+        - name: clone-repo
+          image: registry.access.redhat.com/ubi9/ubi-init:latest
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -e
+
+              echo "Installazione git..."
+              dnf install -y git
+
+              echo "Clonazione repository..."
+              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
+
+              echo "Rimozione directory pre-filled di sistema..."
+              rm -rf /opt/app-root/src/pre-filled || true
+
+              echo "Pulizia directory repo nel PVC..."
+              mkdir -p /opt/app-root/src/repo
+              rm -rf /opt/app-root/src/repo/*
+
+              echo "Copia repository..."
+              cp -R /tmp/repo/* /opt/app-root/src/repo/
+
+              echo "Correzione permessi (UID Workbench = 1001750000)..."
+              chown -R 1001750000:1001750000 /opt/app-root/src/repo
+              chmod -R u+rwX /opt/app-root/src/repo
+
+              echo "FINITO con successo!"
+          volumeMounts:
+            - name: workbench-storage
+              mountPath: /opt/app-root/src
+      volumes:
+        - name: workbench-storage
+          persistentVolumeClaim:
+            claimName: workbench-pvc
