@@ -7,7 +7,6 @@ metadata:
     app.kubernetes.io/instance: monitoring-tools
 spec:
   schedule: "*/30 * * * *"
-  startingDeadlineSeconds: 30
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 1
