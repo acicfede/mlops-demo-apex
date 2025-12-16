@@ -35,7 +35,7 @@ spec:
       serviceAccountName: ml-workbench
       containers:
         - name: clone-repo
-          image: registry.access.redhat.com/ubi9/git:9.3
+          image: registry.access.redhat.com/ubi9/ubi-init:latest
           command: ["/bin/bash", "-c"]
           args:
             - |
