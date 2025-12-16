@@ -5,6 +5,7 @@ metadata:
   namespace: monitoring-tools
 spec:
   backoffLimit: 1
+  ttlSecondsAfterFinished: 300
   template:
     spec:
       serviceAccountName: grafana-token-refresher
@@ -21,6 +22,11 @@ spec:
 
               echo "[BOOTSTRAP] Generating initial token..."
               TOKEN=$(oc create token grafana-sa -n monitoring-tools)
+
+              if [ -z "$TOKEN" ]; then
+                echo "[BOOTSTRAP][ERROR] Token generation failed"
+                exit 1
+              fi
 
               echo "[BOOTSTRAP] Updating prometheus-token secret..."
               oc patch secret prometheus-token -n monitoring-tools \
