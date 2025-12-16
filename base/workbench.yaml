@@ -19,7 +19,47 @@ spec:
     requests:
       storage: 8Gi
   storageClassName: nfs-csi
-storageClassName: nfs-csi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: clone-pipeline-skeleton
+  namespace: ml
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      serviceAccountName: ml-workbench
+      containers:
+        - name: clone-repo
+          image: registry.access.redhat.com/ubi9/git:9.3
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              TARGET_DIR="/opt/app-root/src/repo"
+
+              if [ ! -d "$TARGET_DIR/.git" ]; then
+                echo "Clonazione repository pipeline-skeleton..."
+                git clone https://github.com/acicfede/pipeline-skeleton.git "$TARGET_DIR"
+              else
+                echo "Repository già presente, skip clone"
+              fi
+
+              echo "BOOTSTRAP COMPLETATO"
+          volumeMounts:
+            - name: workbench-storage
+              mountPath: /opt/app-root/src
+      volumes:
+        - name: workbench-storage
+          persistentVolumeClaim:
+            claimName: nuovo-workbench-pvc
 ---
 apiVersion: kubeflow.org/v1
 kind: Notebook
@@ -29,11 +69,11 @@ metadata:
   labels:
     app: nuovo-workbench
   annotations:
-    argocd.argoproj.io/sync-wave: "0"
-    notebooks.opendatahub.io/inject-oauth: 'true'
-    opendatahub.io/image-display-name: Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12
-    notebooks.opendatahub.io/oauth-logout-url: 'https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench'
-    notebooks.opendatahub.io/last-image-selection: 'jupyter-pytorch-llmcompressor:2025.2'
+    argocd.argoproj.io/sync-wave: "1"
+    notebooks.opendatahub.io/inject-oauth: "true"
+    opendatahub.io/image-display-name: "Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12"
+    notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench"
+    notebooks.opendatahub.io/last-image-selection: "jupyter-pytorch-llmcompressor:2025.2"
     opendatahub.io/hardware-profile-namespace: ml
     opendatahub.io/username: admin
     openshift.io/display-name: nuovo-workbench
@@ -77,54 +117,8 @@ spec:
         - name: shm
           emptyDir:
             medium: Memory
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: clone-pipeline-skeleton-2
-  namespace: ml
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
-    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
-spec:
-  backoffLimit: 0
-  template:
-    spec:
-      restartPolicy: Never
-      serviceAccountName: ml-workbench
-      containers:
-        - name: clone-repo
-          image: registry.access.redhat.com/ubi9/ubi-init:latest
-          command: ["/bin/bash", "-c"]
-          args:
-            - |
-              set -e
 
-              echo "Installazione git..."
-              dnf install -y git
 
-              echo "Clonazione repository..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
-
-              echo "Pulizia directory target..."
-              mkdir -p /opt/app-root/src/repo
-              rm -rf /opt/app-root/src/repo/*
-
-              echo "Copia repository..."
-              cp -R /tmp/repo/* /opt/app-root/src/repo/
-
-              echo "Fix permessi..."
-              chown -R 1001750000:1001750000 /opt/app-root/src/repo
-              chmod -R u+rwX /opt/app-root/src/repo
-
-              echo "BOOTSTRAP COMPLETATO"
-          volumeMounts:
-            - name: workbench-storage
-              mountPath: /opt/app-root/src
-      volumes:
-        - name: workbench-storage
-          persistentVolumeClaim:
-            claimName: nuovo-workbench-pvc
 
 
 
