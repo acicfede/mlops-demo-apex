@@ -26,8 +26,6 @@ metadata:
   name: clone-pipeline-skeleton
   namespace: ml
   annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
     argocd.argoproj.io/sync-wave: "0"
 spec:
   backoffLimit: 0
@@ -45,14 +43,15 @@ spec:
 
               TARGET_DIR="/opt/app-root/src/repo"
 
-              if [ ! -d "$TARGET_DIR/.git" ]; then
-                echo "Clonazione repository pipeline-skeleton..."
-                git clone https://github.com/acicfede/pipeline-skeleton.git "$TARGET_DIR"
-              else
+              if [ -d "$TARGET_DIR/.git" ]; then
                 echo "Repository già presente, skip clone"
+                exit 0
               fi
 
-              echo "BOOTSTRAP COMPLETATO"
+              echo "Clonazione repository pipeline-skeleton..."
+              git clone https://github.com/acicfede/pipeline-skeleton.git "$TARGET_DIR"
+
+              echo "CLONE COMPLETATO"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
@@ -117,9 +116,5 @@ spec:
         - name: shm
           emptyDir:
             medium: Memory
-
-
-
-
 
 
