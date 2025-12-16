@@ -15,7 +15,7 @@ spec:
     path: apps
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops
+    namespace: ml
   syncPolicy:
     automated:
       prune: true
