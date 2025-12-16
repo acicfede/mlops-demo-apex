@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring-tools
+  namespace: openshift-gitops
+spec:
+  project: ml-project
+  source:
+    repoURL: 'https://github.com/acicfede/mlops-demo-apex.git'
+    targetRevision: main
+    path: monitoring-tools       # cartella che contiene grafana/ e mlflow/
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: monitoring-tools
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
