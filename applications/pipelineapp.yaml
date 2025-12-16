@@ -1,18 +1,20 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: kfp-pipeline-untitled1
+  name: pipelines
   namespace: openshift-gitops
 spec:
-  destination:
-    namespace: ml
-    server: https://kubernetes.default.svc
+  project: ml-project
   source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
     path: pipelines
-  project: ml-project
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: pipelines
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
