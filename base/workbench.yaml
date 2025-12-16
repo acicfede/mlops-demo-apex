@@ -23,10 +23,8 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: clone-pipeline-skeleton
+  name: clone-pipeline-skeleton-2
   namespace: ml
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   backoffLimit: 6
   template:
@@ -35,7 +33,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: clone-repo
-          image: docker.io/alpine/git:latest
+          image: registry.access.redhat.com/ubi9/ubi-init:latest
           command: ["/bin/bash", "-c"]
           args:
             - |
