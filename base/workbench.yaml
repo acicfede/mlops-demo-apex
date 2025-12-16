@@ -23,10 +23,12 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: clone-pipeline-skeleton-2
+  name: clone-pipeline-skeleton
   namespace: ml
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
-  backoffLimit: 6
+  backoffLimit: 1
   template:
     spec:
       restartPolicy: Never
@@ -39,27 +41,17 @@ spec:
             - |
               set -e
 
-              echo "Installazione git..."
-              dnf install -y git
+              TARGET_DIR="/opt/app-root/src/repo"
 
-              echo "Clonazione repository..."
-              git clone https://github.com/acicfede/pipeline-skeleton.git /tmp/repo
+              if [ -d "$TARGET_DIR/.git" ]; then
+                echo "Repository già presente, skip clone"
+                exit 0
+              fi
 
-              echo "Rimozione directory pre-filled di sistema..."
-              rm -rf /opt/app-root/src/pre-filled || true
+              echo "Clonazione repository pipeline-skeleton..."
+              git clone https://github.com/acicfede/pipeline-skeleton.git "$TARGET_DIR"
 
-              echo "Pulizia directory repo nel PVC..."
-              mkdir -p /opt/app-root/src/repo
-              rm -rf /opt/app-root/src/repo/*
-
-              echo "Copia repository..."
-              cp -R /tmp/repo/* /opt/app-root/src/repo/
-
-              echo "Correzione permessi (UID Workbench = 1001750000)..."
-              chown -R 1001750000:1001750000 /opt/app-root/src/repo
-              chmod -R u+rwX /opt/app-root/src/repo
-
-              echo "FINITO con successo!"
+              echo "BOOTSTRAP COMPLETATO"
           volumeMounts:
             - name: workbench-storage
               mountPath: /opt/app-root/src
