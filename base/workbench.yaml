@@ -35,7 +35,7 @@ spec:
       serviceAccountName: default
       containers:
         - name: clone-repo
-          image: registry.redhat.io/openshift/ose-cli:latest
+          image: docker.io/alpine/git:latest
           command: ["/bin/bash", "-c"]
           args:
             - |
