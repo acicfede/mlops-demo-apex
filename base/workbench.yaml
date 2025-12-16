@@ -33,7 +33,7 @@ spec:
       serviceAccountName: ml-workbench
       containers:
         - name: clone-repo
-          image: registry.access.redhat.com/ubi9/ubi-init:latest
+          image: docker.io/alpine/git:latest
           command: ["/bin/bash", "-c"]
           args:
             - |
