@@ -5,6 +5,7 @@ namespace: monitoring-tools
 
 resources:
   - namespace.yaml
+  - rbac-mt-mlops-user.yaml
   - grafana/
   - open-telemetry/
   - mlflow/
