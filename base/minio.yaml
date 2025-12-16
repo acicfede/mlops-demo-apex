@@ -137,20 +137,17 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: create-minio-bucket
+  name: create-minio-buckets
   namespace: ml
-  annotations:
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
-    argocd.argoproj.io/sync-wave: "2"
 spec:
   backoffLimit: 3
   template:
     spec:
       restartPolicy: OnFailure
       containers:
-        - name: create-bucket
+        - name: create-buckets
           image: quay.io/minio/mc:latest
+          imagePullPolicy: IfNotPresent
           env:
             - name: MINIO_ENDPOINT
               value: http://minio-service:9000
@@ -170,17 +167,22 @@ spec:
             - /bin/sh
             - -c
             - |
-              set -e
+              set -eu
 
-              echo "⏳ Waiting for MinIO to be ready..."
-              until mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; do
-                echo "Waiting..."
+              echo "[INFO] Attesa disponibilità MinIO..."
+              until mc alias set myminio "$MINIO_ENDPOINT" "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD" >/dev/null 2>&1; do
+                echo "[INFO] MinIO non ancora pronto, retry..."
                 sleep 3
               done
 
-              echo "✅ Creating buckets..."
-              mc mb myminio/ml-workbench || true
-              mc mb myminio/mlpipeline-artifacts || true
+              echo "[INFO] Creazione bucket ml-workbench"
+              mc mb myminio/ml-workbench || echo "[INFO] Bucket ml-workbench già esistente"
+
+              echo "[INFO] Creazione bucket mlpipeline-artifacts"
+              mc mb myminio/mlpipeline-artifacts || echo "[INFO] Bucket mlpipeline-artifacts già esistente"
+
+              echo "[INFO] Bucket presenti:"
               mc ls myminio
 
+              echo "[INFO] JOB COMPLETATO CON SUCCESSO"
 
