@@ -6,11 +6,11 @@ metadata:
 spec:
   project: ml-project
   source:
-    repoURL: 'https://github.com/acicfede/mlops-demo-apex.git'
+    repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
     path: base
   destination:
-    server: 'https://kubernetes.default.svc'
+    server: https://kubernetes.default.svc
     namespace: ml-project
   syncPolicy:
     automated:
