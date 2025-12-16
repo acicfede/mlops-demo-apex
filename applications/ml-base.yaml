@@ -11,7 +11,7 @@ spec:
     path: base
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: ml
+    namespace: ml-project
   syncPolicy:
     automated:
       prune: true
