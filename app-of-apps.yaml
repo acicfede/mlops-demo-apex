@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mlops-in-a-box
+  namespace: openshift-gitops
+spec:
+  project: ml-project
+  source:
+    repoURL: https://github.com/acicfede/mlops-demo-apex.git
+    targetRevision: main
+    path: applications/
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
