@@ -1,5 +1,11 @@
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ml-workbench
+  namespace: ml
+---
+apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: nuovo-workbench-pvc
