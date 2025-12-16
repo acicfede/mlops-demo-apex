@@ -34,7 +34,7 @@ spec:
       containers:
         - name: clone-repo
           image: docker.io/alpine/git:latest
-          command: ["/bin/bash", "-c"]
+          command: ["/bin/sh", "-c"]
           args:
             - |
               set -e
