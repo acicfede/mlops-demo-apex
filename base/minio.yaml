@@ -140,7 +140,9 @@ metadata:
   name: create-minio-bucket
   namespace: ml
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   backoffLimit: 3
   template:
@@ -168,13 +170,17 @@ spec:
             - /bin/sh
             - -c
             - |
+              set -e
+
               echo "⏳ Waiting for MinIO to be ready..."
               until mc alias set myminio $MINIO_ENDPOINT $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD 2>/dev/null; do
                 echo "Waiting..."
                 sleep 3
               done
+
               echo "✅ Creating buckets..."
-              mc mb myminio/ml-workbench || echo "Bucket already exists"
-              mc mb myminio/mlpipeline-artifacts || echo "Bucket already exists"
+              mc mb myminio/ml-workbench || true
+              mc mb myminio/mlpipeline-artifacts || true
               mc ls myminio
+
 
