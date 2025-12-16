@@ -30,7 +30,7 @@ spec:
   template:
     spec:
       restartPolicy: Never
-      serviceAccountName: default
+      serviceAccountName: ml-workbench
       containers:
         - name: clone-repo
           image: registry.access.redhat.com/ubi9/ubi-init:latest
