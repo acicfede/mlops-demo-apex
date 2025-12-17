@@ -1,23 +1,18 @@
----
-# 2️⃣ App of Apps ROOT
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: mlops-in-a-box
   namespace: openshift-gitops
-  annotations:
-    argocd.argoproj.io/sync-wave: "2"
 spec:
-  project: ml-project   # ⚠️ IMPORTANTISSIMO
+  project: default        # <-- QUESTO È IL FIX
   source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
-    path: apps
+    path: applications
   destination:
     server: https://kubernetes.default.svc
-    namespace: ml
+    namespace: openshift-gitops   # <-- OK per il default project
   syncPolicy:
     automated:
       prune: true
-      selfHeal: trueapiVersion: argoproj.io/v1alpha1
-
+      selfHeal: true
