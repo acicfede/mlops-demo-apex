@@ -1,8 +1,10 @@
+# ---------------------------------------------------------
+# ServiceAccount
+# ---------------------------------------------------------
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: grafana-token-refresher
-  namespace: monitoring-tools
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
 ---
@@ -13,7 +15,6 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: grafana-token-refresher-bootstrap
-  namespace: monitoring-tools
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/sync-wave: "0"
@@ -34,20 +35,16 @@ spec:
             - -c
             - |
               set -e
-
               echo "[BOOTSTRAP] Generating Prometheus token..."
-              TOKEN=$(oc create token grafana-sa -n monitoring-tools)
-
+              TOKEN=$(oc create token grafana-sa)
               if [ -z "$TOKEN" ]; then
                 echo "[ERROR] Token generation failed"
                 exit 1
               fi
-
               echo "[BOOTSTRAP] Updating prometheus-token secret..."
-              oc patch secret prometheus-token -n monitoring-tools \
+              oc patch secret prometheus-token \
                 --type=merge \
                 -p "{\"stringData\":{\"PROM_TOKEN\":\"$TOKEN\"}}"
-
               echo "[BOOTSTRAP] Token stored successfully"
 ---
 # ---------------------------------------------------------
@@ -57,7 +54,6 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: grafana-data
-  namespace: monitoring-tools
 spec:
   accessModes:
     - ReadWriteOnce
@@ -73,7 +69,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: monitoring-tools
 spec:
   replicas: 1
   selector:
@@ -85,31 +80,25 @@ spec:
         app: grafana
     spec:
       serviceAccountName: grafana-sa
-
       containers:
         - name: grafana
           image: docker.io/grafana/grafana:9.5.2
           ports:
             - containerPort: 3000
-
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
-
-            # 🔐 Token Prometheus (generato dal Job PreSync)
             - name: PROM_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: prometheus-token
                   key: PROM_TOKEN
-
           volumeMounts:
             - name: grafana-storage
               mountPath: /var/lib/grafana
 
-            # Datasources
             - name: grafana-ds-prometheus
               mountPath: /etc/grafana/provisioning/datasources/prometheus.yaml
               subPath: prometheus.yaml
@@ -118,12 +107,10 @@ spec:
               mountPath: /etc/grafana/provisioning/datasources/mlflow.yaml
               subPath: mlflow.yaml
 
-            # Dashboard providers
             - name: grafana-dashboard-providers
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
-            # Dashboards
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
@@ -135,7 +122,6 @@ spec:
             - name: grafana-dashboard-otel-ml
               mountPath: /etc/grafana/provisioning/dashboards/otel-ml/otel-ml-training-dashboard.json
               subPath: otel-ml-training-dashboard.json
-
       volumes:
         - name: grafana-storage
           persistentVolumeClaim:
@@ -172,7 +158,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana
-  namespace: monitoring-tools
 spec:
   selector:
     app: grafana
@@ -188,7 +173,6 @@ apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
   name: grafana
-  namespace: monitoring-tools
 spec:
   to:
     kind: Service
