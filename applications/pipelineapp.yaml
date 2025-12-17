@@ -8,10 +8,10 @@ spec:
   source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
-    path: pipelines
+    path: pipelinedata
   destination:
     server: https://kubernetes.default.svc
-    namespace: pipelines
+    namespace: ml
   syncPolicy:
     automated:
       prune: true
