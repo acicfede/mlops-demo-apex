@@ -4,6 +4,7 @@ kind: Kustomization
 namespace: monitoring-tools
 
 resources:
+  - sa-token-refresher.yaml
   - grafana.yaml
   - datasource-prometheus.yaml
   - grafana-ds-mlflow.yaml
