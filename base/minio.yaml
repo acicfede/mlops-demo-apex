@@ -180,6 +180,9 @@ spec:
 
               echo "[INFO] Creazione bucket mlpipeline-artifacts"
               mc mb myminio/mlpipeline-artifacts || echo "[INFO] Bucket mlpipeline-artifacts già esistente"
+              
+              echo "[INFO] Creazione bucket guidellm-results"
+              mc mb myminio/guidellm-results || echo "[INFO] Bucket guidellm-results già esistente"
 
               echo "[INFO] Bucket presenti:"
               mc ls myminio
