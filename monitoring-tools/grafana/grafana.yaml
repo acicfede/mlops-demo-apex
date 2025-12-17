@@ -3,6 +3,9 @@ kind: ServiceAccount
 metadata:
   name: grafana-token-refresher
   namespace: monitoring-tools
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+---
 # ---------------------------------------------------------
 # Job – Grafana Prometheus Token Bootstrap (ArgoCD PreSync)
 # ---------------------------------------------------------
