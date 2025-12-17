@@ -22,21 +22,25 @@ spec:
             - /bin/sh
             - -c
             - |
-              set -e
-              echo "[BOOTSTRAP] Generating Prometheus token..."
+              set -euo pipefail
 
-              TOKEN=$(oc create token prometheus-token)
+              echo "[INFO] Generating new token for grafana-token-refresher..."
+              TOKEN=$(oc create token grafana-token-refresher)
 
               if [ -z "$TOKEN" ]; then
                 echo "[ERROR] Token generation failed"
                 exit 1
               fi
 
+              echo "[INFO] Updating prometheus-token secret..."
               oc patch secret prometheus-token \
                 --type=merge \
                 -p "{\"stringData\":{\"PROM_TOKEN\":\"$TOKEN\"}}"
 
-              echo "[BOOTSTRAP] Token stored successfully"
+              echo "[INFO] Restarting Grafana pods..."
+              oc delete pod -l app=grafana --ignore-not-found=true
+
+              echo "[INFO] Done!"
 ---
 # ---------------------------------------------------------
 # PVC Grafana
