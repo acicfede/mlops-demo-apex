@@ -31,7 +31,7 @@ spec:
               set -euo pipefail
 
               echo "[INFO] Generating new token for grafana-token-refresher..."
-              TOKEN=$(oc create token grafana-token-refresher)
+              TOKEN=$(oc create token grafana-sa -n monitoring-tools)
 
               if [ -z "$TOKEN" ]; then
                 echo "[ERROR] Token generation failed"
