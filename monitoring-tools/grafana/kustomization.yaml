@@ -9,7 +9,6 @@ resources:
   - grafana-ds-mlflow.yaml
   - grafana-dashboard-providers.yaml
   - secret-prometheus-token.yaml
-  - sa-token-refresher.yaml
   - rbac-token-refresher.yaml
   - cronjob-token-refresher.yaml
 
