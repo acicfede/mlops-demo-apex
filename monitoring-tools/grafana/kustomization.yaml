@@ -5,7 +5,6 @@ namespace: monitoring-tools
 
 resources:
   - grafana.yaml
-  - grafana-serviceaccount.yaml
   - datasource-prometheus.yaml
   - grafana-ds-mlflow.yaml
   - grafana-dashboard-providers.yaml
