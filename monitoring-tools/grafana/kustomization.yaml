@@ -12,6 +12,7 @@ resources:
   - secret-prometheus-token.yaml
   - rbac-token-refresher.yaml
   - cronjob-token-refresher.yaml
+  - rbac-grafana-prometheus.yaml
 
 configMapGenerator:
   - name: grafana-dashboard-mlflow
