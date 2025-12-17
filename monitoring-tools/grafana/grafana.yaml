@@ -1,4 +1,48 @@
 # ---------------------------------------------------------
+# Job – Grafana Prometheus Token Bootstrap (ArgoCD PreSync)
+# ---------------------------------------------------------
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: grafana-token-refresher-bootstrap
+  namespace: monitoring-tools
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      serviceAccountName: grafana-token-refresher
+      restartPolicy: OnFailure
+      containers:
+        - name: refresh-token
+          image: quay.io/openshift/origin-cli:latest
+          imagePullPolicy: Always
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "[BOOTSTRAP] Generating Prometheus token..."
+              TOKEN=$(oc create token grafana-sa -n monitoring-tools)
+
+              if [ -z "$TOKEN" ]; then
+                echo "[ERROR] Token generation failed"
+                exit 1
+              fi
+
+              echo "[BOOTSTRAP] Updating prometheus-token secret..."
+              oc patch secret prometheus-token -n monitoring-tools \
+                --type=merge \
+                -p "{\"stringData\":{\"PROM_TOKEN\":\"$TOKEN\"}}"
+
+              echo "[BOOTSTRAP] Token stored successfully"
+---
+# ---------------------------------------------------------
 # PVC Grafana
 # ---------------------------------------------------------
 apiVersion: v1
@@ -45,7 +89,9 @@ spec:
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
-            - name: PROM_TOKEN        # Automatic update from secret
+
+            # 🔐 Token Prometheus (generato dal Job PreSync)
+            - name: PROM_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: prometheus-token
@@ -69,17 +115,15 @@ spec:
               mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
               subPath: dashboards.yaml
 
-            # MLflow dashboard
+            # Dashboards
             - name: grafana-dashboard-mlflow
               mountPath: /etc/grafana/provisioning/dashboards/mlflow/mlflow-training-dashboard.json
               subPath: mlflow-training-dashboard.json
 
-            # vLLM dashboard
             - name: grafana-dashboard-vllm
               mountPath: /etc/grafana/provisioning/dashboards/vllm/vllm-dashboard.json
               subPath: vllm-dashboard.json
 
-            # NEW: OpenTelemetry ML dashboard
             - name: grafana-dashboard-otel-ml
               mountPath: /etc/grafana/provisioning/dashboards/otel-ml/otel-ml-training-dashboard.json
               subPath: otel-ml-training-dashboard.json
@@ -130,7 +174,7 @@ spec:
       targetPort: 3000
 ---
 # ---------------------------------------------------------
-# Route Grafana
+# Route Grafana (OpenShift)
 # ---------------------------------------------------------
 apiVersion: route.openshift.io/v1
 kind: Route
@@ -145,3 +189,4 @@ spec:
     targetPort: http
   tls:
     termination: edge
+
