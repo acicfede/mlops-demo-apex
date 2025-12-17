@@ -2,6 +2,7 @@ apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: LMEvalJob
 metadata:
   name: evaljob-mmlu-granite
+  namespace: ml
 spec:
   # -------------------------------------------------
   # Job behavior
