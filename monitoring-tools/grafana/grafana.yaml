@@ -25,7 +25,7 @@ spec:
               set -e
               echo "[BOOTSTRAP] Generating Prometheus token..."
 
-              TOKEN=$(oc create token grafana-sa)
+              TOKEN=$(oc create token prometheus-token)
 
               if [ -z "$TOKEN" ]; then
                 echo "[ERROR] Token generation failed"
