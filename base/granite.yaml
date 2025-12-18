@@ -1,12 +1,10 @@
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
-  name: granite-3.1-2b-instruct
+  name: granite-3-1-2b-instruct
   namespace: ml
   annotations:
     opendatahub.io/apiProtocol: REST
-    opendatahub.io/accelerator-name: ""
-    opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
     opendatahub.io/runtime-version: v0.10.1.1
     opendatahub.io/serving-runtime-scope: global
     opendatahub.io/template-display-name: vLLM NVIDIA GPU ServingRuntime for KServe
@@ -30,7 +28,7 @@ spec:
       args:
         - --port=8080
         - --model=/mnt/models
-        - --served-model-name=granite-3.1-2b-instruct
+        - --served-model-name=granite-3-1-2b-instruct
       env:
         - name: HF_HOME
           value: /tmp/hf_home
@@ -51,18 +49,15 @@ spec:
       emptyDir:
         medium: Memory
         sizeLimit: 2Gi
-
 ---
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-  name: granite-3.1-2b-instruct
+  name: granite-3-1-2b-instruct
   namespace: ml
   annotations:
-    opendatahub.io/hardware-profile-namespace: redhat-ods-applications
-    opendatahub.io/legacy-hardware-profile-name: migrated-gpu-mglzi-serving
-    openshift.io/display-name: granite-3.1-2b-instruct
     serving.kserve.io/deploymentMode: RawDeployment
+    openshift.io/display-name: granite-3.1-2b-instruct
   labels:
     networking.kserve.io/visibility: exposed
     opendatahub.io/dashboard: "true"
@@ -78,7 +73,7 @@ spec:
     model:
       modelFormat:
         name: vLLM
-      runtime: granite-3.1-2b-instruct
+      runtime: granite-3-1-2b-instruct
       storageUri: oci://quay.io/redhat-ai-services/modelcar-catalog:granite-3.1-2b-instruct
       resources:
         requests:
