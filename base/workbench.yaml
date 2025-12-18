@@ -95,10 +95,10 @@ spec:
           resources:
             requests:
               cpu: "1"
-              memory: 8Gi
+              memory: 16Gi
             limits:
               cpu: "2"
-              memory: 8Gi
+              memory: 24Gi
           volumeMounts:
             - mountPath: /opt/app-root/src
               name: workbench-storage
