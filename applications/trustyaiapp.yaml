@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: trustyai
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/acicfede/mlops-demo-apex.git
+    targetRevision: main
+    path: trustyai
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: model-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
