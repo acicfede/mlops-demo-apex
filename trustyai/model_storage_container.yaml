@@ -27,6 +27,8 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
+annotations:
+  argocd.argoproj.io/sync-wave: "0"
   name: model-s3-storage-emulator
 labels:
     app: minio-llms # <--- change this to match label on the pod
