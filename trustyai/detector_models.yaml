@@ -46,6 +46,8 @@ spec:
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
+annotations:
+  argocd.argoproj.io/sync-wave: "1"
   name: ibm-hate-and-profanity-detector
   labels:
     opendatahub.io/dashboard: 'true'
@@ -73,6 +75,8 @@ spec:
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
+annotations:
+  argocd.argoproj.io/sync-wave: "1"
   name: gibberish-detector
   labels:
     opendatahub.io/dashboard: 'true'
@@ -100,6 +104,8 @@ spec:
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
+annotations:
+  argocd.argoproj.io/sync-wave: "1"
   name: jailbreak-detector
   labels:
     opendatahub.io/dashboard: 'true'
