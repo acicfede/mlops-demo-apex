@@ -1,7 +1,21 @@
+# =========================
+# Namespace
+# =========================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: model-namespace
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+---
+# =========================
+# Service - MinIO
+# =========================
 apiVersion: v1
 kind: Service
 metadata:
   name: minio-llms
+  namespace: model-namespace
 spec:
   ports:
     - name: minio-client-port
@@ -11,48 +25,53 @@ spec:
   selector:
     app: minio-llms
 ---
+# =========================
+# PersistentVolumeClaim
+# =========================
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: vllm-models-claim
+  namespace: model-namespace
 spec:
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
-  # storageClassName: gp3-csi
   resources:
     requests:
       storage: 300Gi
 ---
+# =========================
+# Deployment - MinIO + downloader
+# =========================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-annotations:
-  argocd.argoproj.io/sync-wave: "0"
   name: model-s3-storage-emulator
-labels:
-    app: minio-llms # <--- change this to match label on the pod
+  namespace: model-namespace
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    app: minio-llms
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: minio-llms  # <--- change this to match label on the pod
-  template: # => from here down copy and paste the pods metadata: and spec: sections
+      app: minio-llms
+  template:
     metadata:
+      name: minio-llms
       labels:
         app: minio-llms
         maistra.io/expose-route: 'true'
-      name: minio-llms
     spec:
       volumes:
-      - name: model-volume
-        persistentVolumeClaim:
-          claimName: vllm-models-claim
+        - name: model-volume
+          persistentVolumeClaim:
+            claimName: vllm-models-claim
       initContainers:
         - name: download-model
           image: quay.io/rgeada/llm_downloader:latest
-          securityContext:
-            fsGroup: 1001
           command:
             - bash
             - -c
@@ -71,63 +90,75 @@ spec:
               echo "Done!"
           resources:
             limits:
-              memory: "2Gi"
+              memory: 2Gi
               cpu: "2"
           volumeMounts:
-            - mountPath: "/mnt/models/"
-              name: model-volume
+            - name: model-volume
+              mountPath: /mnt/models
       containers:
-        - args:
+        - name: minio
+          image: quay.io/trustyai/modelmesh-minio-examples:latest
+          args:
             - server
             - /models
           env:
             - name: MINIO_ACCESS_KEY
-              value:  THEACCESSKEY
+              value: THEACCESSKEY
             - name: MINIO_SECRET_KEY
               value: THESECRETKEY
-          image: quay.io/trustyai/modelmesh-minio-examples:latest
-          name: minio
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
-              drop:
-                - ALL
+              drop: ["ALL"]
             seccompProfile:
               type: RuntimeDefault
           volumeMounts:
-            - mountPath: "/models/"
-              name: model-volume
+            - name: model-volume
+              mountPath: /models
 ---
+# =========================
+# Secret - S3 connection
+# =========================
 apiVersion: v1
 kind: Secret
 metadata:
   name: aws-connection-data-connection
+  namespace: model-namespace
   labels:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/managed: 'true'
   annotations:
     opendatahub.io/connection-type: s3
     openshift.io/display-name: Minio Data Connection
+type: Opaque
 data:
   AWS_ACCESS_KEY_ID: VEhFQUNDRVNTS0VZ
   AWS_DEFAULT_REGION: dXMtc291dGg=
   AWS_S3_BUCKET: bGxtcw==
   AWS_S3_ENDPOINT: aHR0cDovL21pbmlvLWxsbXM6OTAwMA==
   AWS_SECRET_ACCESS_KEY: VEhFU0VDUkVUS0VZ
-type: Opaque
 ---
+# =========================
+# ServiceAccount
+# =========================
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: user-one
+  namespace: model-namespace
 ---
-kind: RoleBinding
+# =========================
+# RoleBinding
+# =========================
 apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
 metadata:
   name: user-one-view
+  namespace: model-namespace
 subjects:
   - kind: ServiceAccount
     name: user-one
+    namespace: model-namespace
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
