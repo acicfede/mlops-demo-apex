@@ -4,14 +4,14 @@ metadata:
   name: mlops-in-a-box
   namespace: openshift-gitops
 spec:
-  project: default        # <-- QUESTO È IL FIX
+  project: default
   source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
     path: applications
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops   # <-- OK per il default project
+    namespace: openshift-gitops
   syncPolicy:
     automated:
       prune: true
