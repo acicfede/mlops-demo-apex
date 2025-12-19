@@ -1,8 +1,13 @@
+# =========================
+# ServingRuntime
+# =========================
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
   name: guardrails-detector-runtime-hap
+  namespace: model-namespace
   annotations:
+    argocd.argoproj.io/sync-wave: "0"
     openshift.io/display-name: Guardrails Detector ServingRuntime for KServe
     opendatahub.io/recommended-accelerators: '["nvidia.com/gpu"]'
   labels:
@@ -43,89 +48,95 @@ spec:
         - containerPort: 8000
           protocol: TCP
 ---
+# =========================
+# InferenceService - IBM Hate & Profanity
+# =========================
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-annotations:
-  argocd.argoproj.io/sync-wave: "1"
   name: ibm-hate-and-profanity-detector
-  labels:
-    opendatahub.io/dashboard: 'true'
-    trustyai/guardrails: 'true'
+  namespace: model-namespace
   annotations:
+    argocd.argoproj.io/sync-wave: "1"
     openshift.io/display-name: ibm-hate-and-profanity-detector
     serving.knative.openshift.io/enablePassthrough: 'true'
     sidecar.istio.io/inject: 'true'
     security.opendatahub.io/enable-auth: 'true'
     sidecar.istio.io/rewriteAppHTTPProbers: 'true'
     serving.kserve.io/deploymentMode: RawDeployment
-spec:
-  predictor:
-    maxReplicas: 1
-    minReplicas: 1
-    model:
-      modelFormat:
-        name: guardrails-detector-huggingface
-      name: ''
-      runtime: guardrails-detector-runtime-hap
-      storage:
-        key:  aws-connection-data-connection
-        path: granite-guardian-hap-38m
----
-apiVersion: serving.kserve.io/v1beta1
-kind: InferenceService
-metadata:
-annotations:
-  argocd.argoproj.io/sync-wave: "1"
-  name: gibberish-detector
   labels:
     opendatahub.io/dashboard: 'true'
     trustyai/guardrails: 'true'
+spec:
+  predictor:
+    minReplicas: 1
+    maxReplicas: 1
+    model:
+      runtime: guardrails-detector-runtime-hap
+      modelFormat:
+        name: guardrails-detector-huggingface
+      storage:
+        key: aws-connection-data-connection
+        path: granite-guardian-hap-38m
+---
+# =========================
+# InferenceService - Gibberish
+# =========================
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: gibberish-detector
+  namespace: model-namespace
   annotations:
+    argocd.argoproj.io/sync-wave: "1"
     openshift.io/display-name: gibberish-detector
     serving.knative.openshift.io/enablePassthrough: 'true'
     sidecar.istio.io/inject: 'true'
     security.opendatahub.io/enable-auth: 'true'
     sidecar.istio.io/rewriteAppHTTPProbers: 'true'
     serving.kserve.io/deploymentMode: RawDeployment
+  labels:
+    opendatahub.io/dashboard: 'true'
+    trustyai/guardrails: 'true'
 spec:
   predictor:
-    maxReplicas: 1
     minReplicas: 1
+    maxReplicas: 1
     model:
+      runtime: guardrails-detector-runtime-hap
       modelFormat:
         name: guardrails-detector-huggingface
-      name: ''
-      runtime: guardrails-detector-runtime-hap
       storage:
         key: aws-connection-data-connection
         path: gibberish-text-detector
 ---
+# =========================
+# InferenceService - Jailbreak
+# =========================
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
-annotations:
-  argocd.argoproj.io/sync-wave: "1"
   name: jailbreak-detector
-  labels:
-    opendatahub.io/dashboard: 'true'
-    trustyai/guardrails: 'true'
+  namespace: model-namespace
   annotations:
+    argocd.argoproj.io/sync-wave: "1"
     openshift.io/display-name: jailbreak-detector
     serving.knative.openshift.io/enablePassthrough: 'true'
     sidecar.istio.io/inject: 'true'
     security.opendatahub.io/enable-auth: 'true'
     sidecar.istio.io/rewriteAppHTTPProbers: 'true'
     serving.kserve.io/deploymentMode: RawDeployment
+  labels:
+    opendatahub.io/dashboard: 'true'
+    trustyai/guardrails: 'true'
 spec:
   predictor:
-    maxReplicas: 1
     minReplicas: 1
+    maxReplicas: 1
     model:
+      runtime: guardrails-detector-runtime-hap
       modelFormat:
         name: guardrails-detector-huggingface
-      name: ''
-      runtime: guardrails-detector-runtime-hap
       storage:
         key: aws-connection-data-connection
         path: jailbreak-classifier
