@@ -65,6 +65,7 @@ metadata:
     app: nuovo-workbench
   annotations:
     opendatahub.io/legacy-hardware-profile-name: migrated-gpu-mglzi-notebooks
+    notebooks.opendatahub.io/last-image-selection: 'jupyter-pytorch-llmcompressor:2025.2'
     opendatahub.io/hardware-profile-namespace: ''
     opendatahub.io/image-display-name: "Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12"
     notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench"
