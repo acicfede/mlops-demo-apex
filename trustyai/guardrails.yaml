@@ -2,6 +2,7 @@ apiVersion: trustyai.opendatahub.io/v1alpha1
 kind: GuardrailsOrchestrator
 metadata:
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     security.opendatahub.io/enable-auth: 'true'
   name: guardrails-orchestrator
 spec:
