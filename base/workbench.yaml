@@ -64,23 +64,30 @@ metadata:
   labels:
     app: nuovo-workbench
   annotations:
-    notebooks.opendatahub.io/inject-oauth: "true"
     opendatahub.io/image-display-name: "Jupyter | PyTorch LLM Compressor | CUDA | Python 3.12"
     notebooks.opendatahub.io/oauth-logout-url: "https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench"
-    notebooks.opendatahub.io/last-image-selection: "jupyter-pytorch-llmcompressor:2025.2"
-    opendatahub.io/hardware-profile-namespace: ml
-    opendatahub.io/username: admin
     openshift.io/display-name: nuovo-workbench
+
 spec:
   template:
     spec:
       serviceAccountName: ml-workbench
       enableServiceLinks: false
+
       containers:
+        # =========================
+        # Notebook container
+        # =========================
         - name: nuovo-workbench
           image: image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/jupyter-pytorch-llmcompressor:2025.2
           imagePullPolicy: Always
           workingDir: /opt/app-root/src
+
+          ports:
+            - name: notebook-port
+              containerPort: 8888
+              protocol: TCP
+
           env:
             - name: NOTEBOOK_ARGS
               value: |
@@ -89,9 +96,7 @@ spec:
                 --ServerApp.password=''
                 --ServerApp.base_url=/notebook/ml/nuovo-workbench
                 --ServerApp.quit_button=False
-          ports:
-            - containerPort: 8888
-              name: notebook-port
+
           resources:
             requests:
               cpu: "1"
@@ -99,17 +104,75 @@ spec:
             limits:
               cpu: "2"
               memory: 24Gi
+
           volumeMounts:
-            - mountPath: /opt/app-root/src
-              name: workbench-storage
-            - mountPath: /dev/shm
-              name: shm
+            - name: workbench-storage
+              mountPath: /opt/app-root/src
+            - name: shm
+              mountPath: /dev/shm
+
+        # =========================
+        # OAuth proxy (manuale)
+        # =========================
+        - name: oauth-proxy
+          image: registry.redhat.io/openshift4/ose-oauth-proxy-rhel9
+          imagePullPolicy: Always
+
+          ports:
+            - name: oauth-proxy
+              containerPort: 8443
+              protocol: TCP
+
+          args:
+            - --provider=openshift
+            - --https-address=:8443
+            - --http-address=
+            - --upstream=http://localhost:8888
+            - --email-domain=*
+            - --skip-provider-button
+            - --cookie-expire=24h0m0s
+            - --cookie-secret-file=/etc/oauth/config/cookie_secret
+            - --client-id=nuovo-workbench-ml-oauth-client
+            - --client-secret-file=/etc/oauth/client/secret
+            - --tls-cert=/etc/tls/private/tls.crt
+            - --tls-key=/etc/tls/private/tls.key
+            - --logout-url=https://rhods-dashboard-redhat-ods-applications.apps.privateailab.acic.accenture/projects/ml?notebookLogout=nuovo-workbench
+            - >
+              --openshift-sar={"verb":"get","resource":"notebooks","resourceAPIGroup":"kubeflow.org","resourceName":"nuovo-workbench","namespace":"ml"}
+
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          volumeMounts:
+            - name: oauth-client
+              mountPath: /etc/oauth/client
+            - name: oauth-config
+              mountPath: /etc/oauth/config
+            - name: tls-certificates
+              mountPath: /etc/tls/private
+
       volumes:
         - name: workbench-storage
           persistentVolumeClaim:
             claimName: nuovo-workbench-pvc
+
         - name: shm
           emptyDir:
             medium: Memory
+
+        - name: oauth-config
+          secret:
+            secretName: nuovo-workbench-oauth-config
+
+        - name: oauth-client
+          secret:
+            secretName: nuovo-workbench-oauth-client
+
+        - name: tls-certificates
+          secret:
+            secretName: nuovo-workbench-tls
 
 
