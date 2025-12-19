@@ -4,7 +4,7 @@ metadata:
   name: monitoring-tools
   namespace: openshift-gitops
 spec:
-  project: platform-project
+  project: default
   source:
     repoURL: https://github.com/acicfede/mlops-demo-apex.git
     targetRevision: main
